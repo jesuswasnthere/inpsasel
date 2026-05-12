@@ -6,10 +6,15 @@ const session = require('express-session');
 const bodyParser = require('body-parser');
 const path = require('path');
 const fs = require('fs');
+const crypto = require('crypto');
 
 const app = express();
+app.set('trust proxy', 1);
 const port = Number(process.env.PORT || 3000);
 const DEFAULT_USER_ID = Number(process.env.DEFAULT_USER_ID || 1);
+const SESSION_SECRET = process.env.SESSION_SECRET || 'secreto_ipsasel';
+const AUTH_COOKIE_NAME = 'ipsasel_auth';
+const AUTH_COOKIE_MAX_AGE_MS = Number(process.env.AUTH_COOKIE_MAX_AGE_MS || 8 * 60 * 60 * 1000);
 
 function applyCorsHeaders(req, res) {
   const requestOrigin = req.headers.origin;
@@ -178,10 +183,23 @@ app.use((req, res, next) => {
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(session({
-  secret: 'secreto_ipsasel', // Cambia por un secreto seguro
+  secret: SESSION_SECRET,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: AUTH_COOKIE_MAX_AGE_MS,
+  },
 }));
+app.use((req, res, next) => {
+  if (isPublicRequest(req)) {
+    return next();
+  }
+
+  return requireAuth(req, res, next);
+});
 app.use(express.static(path.join(__dirname), { index: false }));
 
 app.get('/style.css', (req, res) => {
@@ -192,6 +210,7 @@ app.get('/menu_style.css', (req, res) => {
   res.type('text/css').send(loadTextAsset('menu_style.css', 'body { font-family: sans-serif; }'));
 });
 const HTML_PAGES = {
+  'login.html': '<!doctype html><html><head><meta charset="utf-8"><title>Inicio de sesion</title></head><body><h1>Inicio de sesion</h1></body></html>',
   'menu_index.html': '<!doctype html><html><head><meta charset="utf-8"><title>INPSASEL</title></head><body><h1>INPSASEL</h1></body></html>',
   'index.html': '<!doctype html><html><head><meta charset="utf-8"><title>Registro</title></head><body><h1>Registro de visita</h1></body></html>',
   'modify_visit.html': '<!doctype html><html><head><meta charset="utf-8"><title>Modificar</title></head><body><h1>Modificar visita</h1></body></html>',
@@ -225,9 +244,191 @@ function sendStaticHtml(res, fileName) {
   res.type('html').send(loadHtmlPage(fileName));
 }
 
+function parseCookies(req) {
+  const header = req.headers.cookie || '';
+  return header.split(';').reduce((cookies, pair) => {
+    const separatorIndex = pair.indexOf('=');
+    if (separatorIndex === -1) {
+      return cookies;
+    }
+
+    const key = pair.slice(0, separatorIndex).trim();
+    const value = pair.slice(separatorIndex + 1).trim();
+    if (key) {
+      cookies[key] = decodeURIComponent(value);
+    }
+    return cookies;
+  }, {});
+}
+
+function signAuthPayload(payload) {
+  return crypto
+    .createHmac('sha256', SESSION_SECRET)
+    .update(payload)
+    .digest('base64url');
+}
+
+function createAuthCookieValue(user) {
+  const payload = Buffer.from(JSON.stringify({
+    userId: user.id_usuario,
+    username: user.username,
+    exp: Date.now() + AUTH_COOKIE_MAX_AGE_MS,
+  })).toString('base64url');
+
+  return `${payload}.${signAuthPayload(payload)}`;
+}
+
+function verifyAuthCookie(req) {
+  const rawCookie = parseCookies(req)[AUTH_COOKIE_NAME];
+  if (!rawCookie) {
+    return null;
+  }
+
+  const [payload, signature] = rawCookie.split('.');
+  if (!payload || !signature) {
+    return null;
+  }
+
+  const expectedSignature = signAuthPayload(payload);
+  const signatureBuffer = Buffer.from(signature);
+  const expectedBuffer = Buffer.from(expectedSignature);
+  if (
+    signatureBuffer.length !== expectedBuffer.length ||
+    !crypto.timingSafeEqual(signatureBuffer, expectedBuffer)
+  ) {
+    return null;
+  }
+
+  try {
+    const data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+    if (!data.exp || Date.now() > data.exp || !data.userId) {
+      return null;
+    }
+
+    return {
+      userId: Number(data.userId),
+      username: String(data.username || ''),
+    };
+  } catch (err) {
+    return null;
+  }
+}
+
+function setAuthCookie(res, user) {
+  res.cookie(AUTH_COOKIE_NAME, createAuthCookieValue(user), {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: AUTH_COOKIE_MAX_AGE_MS,
+    path: '/',
+  });
+}
+
+function clearAuthCookie(res) {
+  res.clearCookie(AUTH_COOKIE_NAME, {
+    path: '/',
+  });
+}
+
+function getAuthenticatedUser(req) {
+  if (req.session && req.session.isAuthenticated) {
+    return {
+      userId: Number(req.session.userId || DEFAULT_USER_ID),
+      username: req.session.username || '',
+    };
+  }
+
+  const cookieUser = verifyAuthCookie(req);
+  if (!cookieUser) {
+    return null;
+  }
+
+  if (req.session) {
+    req.session.isAuthenticated = true;
+    req.session.userId = cookieUser.userId;
+    req.session.username = cookieUser.username;
+  }
+
+  return cookieUser;
+}
+
+function wantsJsonResponse(req) {
+  const acceptHeader = req.headers.accept || '';
+  return req.path.startsWith('/api') || acceptHeader.includes('application/json');
+}
+
+function sanitizeRedirect(target) {
+  if (!target || typeof target !== 'string') {
+    return '/menu';
+  }
+
+  if (!target.startsWith('/') || target.startsWith('//') || target === '/' || target.startsWith('/login')) {
+    return '/menu';
+  }
+
+  return target;
+}
+
+function loginRedirectUrl(req) {
+  if (!req.originalUrl || req.originalUrl === '/' || req.originalUrl.startsWith('/login')) {
+    return '/login';
+  }
+
+  return `/login?next=${encodeURIComponent(req.originalUrl)}`;
+}
+
+function requireAuth(req, res, next) {
+  const authUser = getAuthenticatedUser(req);
+  if (authUser) {
+    req.authUser = authUser;
+    return next();
+  }
+
+  if (wantsJsonResponse(req)) {
+    return res.status(401).json({
+      success: false,
+      message: 'Sesion expirada. Inicie sesion nuevamente.',
+    });
+  }
+
+  return res.redirect(303, loginRedirectUrl(req));
+}
+
+function isPublicAsset(pathname) {
+  return /\.(css|png|jpe?g|gif|svg|ico|webp)$/i.test(pathname);
+}
+
+function isPublicRequest(req) {
+  if (req.method === 'OPTIONS') {
+    return true;
+  }
+
+  if (req.method === 'GET' && (req.path === '/' || req.path === '/login' || req.path === '/login.html')) {
+    return true;
+  }
+
+  if (req.method === 'POST' && req.path === '/login') {
+    return true;
+  }
+
+  return req.method === 'GET' && isPublicAsset(req.path);
+}
+
 // Rutas
 app.get('/', (req, res) => {
-  sendStaticHtml(res, 'menu_index.html');
+  if (getAuthenticatedUser(req)) {
+    return res.redirect('/menu');
+  }
+
+  return sendStaticHtml(res, 'login.html');
+});
+
+app.get('/login', (req, res) => {
+  if (getAuthenticatedUser(req)) {
+    return res.redirect('/menu');
+  }
+
+  return sendStaticHtml(res, 'login.html');
 });
 
 app.get('/register-visit', (req, res) => {
@@ -384,7 +585,8 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     }
 
     const codigo_visita = `VIS-${Date.now()}`;
-    const id_usuario = req.session.userId || DEFAULT_USER_ID;
+    const authUser = getAuthenticatedUser(req);
+    const id_usuario = authUser ? authUser.userId : (req.session.userId || DEFAULT_USER_ID);
 
     const userCheck = await pool.query('SELECT id_usuario FROM USUARIOS WHERE id_usuario = $1', [id_usuario]);
     if (userCheck.rows.length === 0) {
@@ -698,27 +900,46 @@ app.post('/modify-visit', requireContactColumns, async (req, res) => {
   }
 });
 
-// Ruta para login (básico)
+// Ruta para login
 app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
+  const { username, password, next } = req.body;
+  const redirectTo = sanitizeRedirect(next);
+
+  if (!username || !password) {
+    return res.redirect(303, `/login?error=${encodeURIComponent('Ingrese usuario y contrasena.')}&next=${encodeURIComponent(redirectTo)}`);
+  }
+
   try {
-    const result = await pool.query('SELECT * FROM USUARIOS WHERE username = $1', [username]);
+    const result = await pool.query('SELECT id_usuario, username, password FROM USUARIOS WHERE username = $1', [username]);
     if (result.rows.length > 0) {
       const user = result.rows[0];
       const match = await bcrypt.compare(password, user.password);
       if (match) {
+        req.session.isAuthenticated = true;
         req.session.userId = user.id_usuario;
-        res.redirect('/menu');
-      } else {
-        res.send('Contraseña incorrecta');
+        req.session.username = user.username;
+        setAuthCookie(res, user);
+        return res.redirect(303, redirectTo);
       }
-    } else {
-      res.send('Usuario no encontrado');
     }
+
+    return res.redirect(303, `/login?error=${encodeURIComponent('Usuario o contrasena incorrectos.')}&next=${encodeURIComponent(redirectTo)}`);
   } catch (err) {
     console.error(err);
-    res.status(500).send('Error en login');
+    return res.redirect(303, `/login?error=${encodeURIComponent('No se pudo validar el acceso. Intente nuevamente.')}&next=${encodeURIComponent(redirectTo)}`);
   }
+});
+
+app.post('/logout', (req, res) => {
+  clearAuthCookie(res);
+
+  if (!req.session) {
+    return res.redirect(303, '/login?logged_out=1');
+  }
+
+  return req.session.destroy(() => {
+    res.redirect(303, '/login?logged_out=1');
+  });
 });
 
 // Error handler

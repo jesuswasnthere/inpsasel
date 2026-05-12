@@ -141,3 +141,21 @@ body {
 .welcome-card p {
     color: #64748b;
 }
+
+.sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid #334155;
+}
+
+.logout-form {
+    margin: 0;
+}
+
+.logout-btn {
+    margin-bottom: 0;
+    background-color: rgba(248, 250, 252, 0.08);
+}
+
+.logout-btn:hover {
+    background-color: #dc2626;
+}

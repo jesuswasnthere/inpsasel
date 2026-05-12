@@ -60,12 +60,21 @@ npm run dev
 
 El servidor correrá en `http://localhost:3000`.
 
+## Acceso
+
+- La primera pantalla es `GET /` o `GET /login`.
+- El login valida contra la tabla `USUARIOS`, usando `username` y `password` con hash bcrypt.
+- Para un solo usuario, crea una sola fila en `USUARIOS` y usa ese usuario para ingresar.
+- Las pantallas internas y las APIs requieren sesion activa.
+
 ## Rutas
 
-- `GET /`: Formulario de registro de visitas
-- `POST /register-visit`: Registrar una visita
-- `GET /menu`: Menú del sistema
+- `GET /`: Inicio de sesion
 - `POST /login`: Login de usuarios
+- `POST /logout`: Cerrar sesion
+- `GET /menu`: Menu del sistema
+- `GET /register-visit`: Formulario de registro de visitas
+- `POST /register-visit`: Registrar una visita
 
 ## Notas
 
