@@ -3,6 +3,8 @@ services:
     build: .
     ports:
       - "3000:3000"
+    env_file:               # Esto lee tu archivo .env real
+      - .env
     environment:
       - DATABASE_URL=postgres://postgres:password@db:5432/ipsasel_db
     depends_on:
