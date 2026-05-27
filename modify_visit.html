@@ -47,6 +47,20 @@
             </div>
 
             <div class="form-group">
+              <label for="Sexo">Sexo</label>
+              <select id="Sexo" name="Sexo">
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="Edad">Edad</label>
+              <input type="number" id="Edad" name="Edad" placeholder="Edad" required>
+            </div>
+
+            <div class="form-group">
               <label for="entidad">Entidad</label>
               <input type="text" id="entidad" name="entidad" placeholder="Ej. Empresa XYZ">
             </div>
@@ -59,6 +73,39 @@
             <div class="form-group">
                 <label for="telefono">Teléfono</label>
                 <input type="tel" id="telefono" name="telefono" placeholder="Ej. +58 412..." required>
+            </div>
+
+            <div class="form-group">
+                <label for="municipio">Municipio</label>
+                <select id="municipio" name="municipio">
+                  <option value="Agua Blanca">Agua Blanca</option>
+                  <option value="Araure">Araure</option>
+                  <option value="Esteller">Esteller</option>
+                  <option value="Guanare">Guanare</option>
+                  <option value="Guanarito">Guanarito</option>
+                  <option value="Monseñor José Vicente de Unda">Monseñor José Vicente de Unda</option>
+                  <option value="Ospino">Ospino</option>
+                  <option value="Páez">Páez</option>
+                  <option value="Papelón">Papelón</option>
+                  <option value="San Genaro de Boconoíto">San Genaro de Boconoíto</option>
+                  <option value="San Rafael de Onoto">San Rafael de Onoto</option>
+                  <option value="Santa Rosalía">Santa Rosalía</option>
+                  <option value="Sucre">Sucre</option>
+                  <option value="Turén">Turén</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="sector">Sector</label>
+                <select id="sector" name="sector">
+                    <option value="Publico">Público</option>
+                    <option value="Privado">Privado</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+              <label for="cargo">Cargo</label>
+              <input type="text" id="cargo" name="cargo" placeholder="Ej. Gerente de Ventas">
             </div>
 
             <div class="form-group">
@@ -83,14 +130,29 @@
             </div>
 
             <div class="form-group">
-                <label for="estatus">Estatus de Visita</label>
-                <select id="estatus" name="estatus">
-                    <option value="Planificada">Planificada</option>
-                    <option value="No Programada">No Programada</option>
-                    <option value="Emergencia">Emergencia</option>
-                    <option value="En Curso">En Curso</option>
-                    <option value="Completada">Completada</option>
+              <label for="funcion">Función</label>
+                <select id="funcion" name="funcion">
+                    <option value="DDP">Delegado de Prevención</option>
+                    <option value="CSSL">Comité de Seguridad y Salud Laboral</option>
+                    <option value="SERV">Servicio de Salud</option>
+                    <option value="TRAB">Trabajador</option>
+                    <option value="OTRO">Otro</option>
                 </select>
+            </div>
+
+            <div class="form-group">
+                <label for="actividad_economica">Actividad Económica</label>
+                <input type="text" id="actividad_economica" name="actividad_economica" placeholder="Ej. Industria">
+            </div>
+
+            <div class="form-group">
+              <label for="estatus">Estatus de Visita</label>
+              <select id="estatus" name="estatus">
+                <option value="Procesada">Procesada</option>
+                <option value="Rechasada">Rechazada</option>
+                <option value="En Revision">En Revisión</option>
+                <option value="Otras">Otras</option>
+              </select>
             </div>
 
             <div class="form-group checkbox-group full-width">
@@ -98,6 +160,37 @@
                     <input type="checkbox" id="toggle-ot" name="toggle_ot">
                     Añadir/Editar Código OT
                 </label>
+            </div>
+
+            <div class="form-group">
+                <label for="Cordinacion_Referida">Coordinación Referida</label>
+                <select id="Cordinacion_Referida" name="Cordinacion_Referida">
+                    <option value="Inspecciones">Inspecciones</option>
+                    <option value="Educacion">Educación</option>
+                    <option value="Sanciones">Sanciones</option>
+                    <option value="Salud laboral">Salud laboral</option>
+                    <option value="Psicosocial">Psicosocial</option>
+                    <option value="Epidemiologia">Epidemiología</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="funcionario">Funcionario</label>
+                <input type="text" id="funcionario" name="funcionario" placeholder="Nombre del funcionario">
+            </div>
+
+            <div class="form-group checkbox-group full-width">
+              <label class="checkbox-label">
+                <input type="checkbox" id="toggle-observaciones" name="toggle_observaciones">
+                Añadir Observaciones
+              </label>
+            </div>
+
+            <div id="observaciones-fields" class="hidden-fields full-width">
+              <div class="form-group full-width">
+                <label for="observaciones">Observaciones (Opcional)</label>
+                <textarea id="observaciones" name="observaciones" rows="4" placeholder="Escribe observaciones adicionales aquí"></textarea>
+              </div>
             </div>
 
             <div id="ot-fields" class="hidden-fields full-width">
@@ -122,6 +215,9 @@ const otToggle = document.getElementById('toggle-ot');
 const otFields = document.getElementById('ot-fields');
 const otCode = document.getElementById('codigo_ot');
 const otDetail = document.getElementById('detalle_ot');
+const obsToggle = document.getElementById('toggle-observaciones');
+const obsFields = document.getElementById('observaciones-fields');
+const obsTextarea = document.getElementById('observaciones');
 
 otToggle.addEventListener('change', () => {
   if (otToggle.checked) {
@@ -134,6 +230,7 @@ otToggle.addEventListener('change', () => {
 });
 
 otFields.style.display = 'none';
+if (obsFields) obsFields.style.display = 'none';
 
 const searchInput = document.getElementById('search_codigo_visita');
 const searchButton = document.getElementById('search-button');
@@ -193,7 +290,25 @@ function loadVisit(visit) {
   document.getElementById('telefono').value = visit.telefono || '';
   document.getElementById('tipo_contacto').value = visit.tipo_contacto || 'Individual';
   document.getElementById('tipo_visita').value = visit.tipo_visita || 'Técnica';
-  document.getElementById('estatus').value = visit.estatus || 'Planificada';
+  document.getElementById('estatus').value = visit.estatus || 'Procesada';
+  document.getElementById('Sexo').value = visit.sexo || visit.Sexo || 'Masculino';
+  document.getElementById('Edad').value = visit.edad || visit.Edad || '';
+  document.getElementById('municipio').value = visit.municipio || '';
+  document.getElementById('sector').value = visit.sector || '';
+  document.getElementById('cargo').value = visit.cargo || '';
+  document.getElementById('funcion').value = visit.funcion || '';
+  document.getElementById('actividad_economica').value = visit.actividad_economica || '';
+  document.getElementById('Cordinacion_Referida').value = visit.cordinacion_referida || visit.Cordinacion_Referida || '';
+  document.getElementById('funcionario').value = visit.funcionario || '';
+  if (visit.observaciones) {
+    if (obsToggle) obsToggle.checked = true;
+    if (obsFields) obsFields.style.display = 'block';
+    if (obsTextarea) obsTextarea.value = visit.observaciones || '';
+  } else {
+    if (obsToggle) obsToggle.checked = false;
+    if (obsFields) obsFields.style.display = 'none';
+    if (obsTextarea) obsTextarea.value = '';
+  }
   updateContactRequirements();
   if (visit.codigo_ot) {
     otToggle.checked = true;
@@ -226,6 +341,16 @@ searchButton.addEventListener('click', async () => {
 
 tipoContactoSelect.addEventListener('change', updateContactRequirements);
 updateContactRequirements();
+if (obsToggle) {
+  obsToggle.addEventListener('change', () => {
+    if (obsToggle.checked) {
+      if (obsFields) obsFields.style.display = 'block';
+    } else {
+      if (obsFields) obsFields.style.display = 'none';
+      if (obsTextarea) obsTextarea.value = '';
+    }
+  });
+}
 </script>
 
 </body>
