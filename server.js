@@ -89,7 +89,7 @@ const ALLOWED_SEXO = ['Masculino', 'Femenino', 'Otro'];
 const ALLOWED_SECTOR = ['Publico', 'Privado'];
 const ALLOWED_FUNCION = ['DDP', 'CSSL', 'SERV', 'TRAB', 'OTRO'];
 const ALLOWED_ESTATUS = ['Procesada', 'Rechasada', 'En Revision', 'Otras'];
-const ALLOWED_MUNICIPIOS = ['Agua Blanca', 'Araure', 'Esteller', 'Guanare', 'Guanarito', 'Monseñor José Vicente de Unda', 'Ospino', 'Páez', 'Papelón', 'San Genaro de Boconoíto', 'San Rafael de Onoto', 'Santa Rosalía', 'Sucre', 'Turén'];
+const ALLOWED_municipio = ['Agua Blanca', 'Araure', 'Esteller', 'Guanare', 'Guanarito', 'Monseñor José Vicente de Unda', 'Ospino', 'Páez', 'Papelón', 'San Genaro de Boconoíto', 'San Rafael de Onoto', 'Santa Rosalía', 'Sucre', 'Turén'];
 const ALLOWED_CORDINACION_REFERIDA = ['Inspecciones', 'Educacion', 'Sanciones', 'Salud laboral', 'Psicosocial', 'Epidemiologia'];
 const ALLOWED_TIPOS = ['Técnica', 'Comercial', 'Soporte', 'Inspección', 'Personal', 'Administrativa'];
 const ALLOWED_TIPO_CONTACTO = ['Individual', 'Empresa', 'Organización'];
@@ -174,7 +174,7 @@ function validateVisitBody(body) {
     motivo_visita,
     cedula_rif,
     telefono,
-    municipios,
+    municipio,
     sector,
     entidad,
     cargo,
@@ -198,8 +198,8 @@ function validateVisitBody(body) {
   if (!cedula_rif) errors.push('Cédula o RIF es obligatorio.');
   if (!telefono) errors.push('Teléfono es obligatorio.');
   if (telefono && telefono.length < 7) errors.push('Teléfono parece demasiado corto.');
-  if (!municipios) errors.push('Municipio es obligatorio.');
-  if (municipios && !ALLOWED_MUNICIPIOS.includes(municipios)) errors.push(`Municipio inválido. Valores válidos: ${ALLOWED_MUNICIPIOS.join(', ')}.`);
+  if (!municipio) errors.push('Municipio es obligatorio.');
+  if (municipio && !ALLOWED_municipio.includes(municipio)) errors.push(`Municipio inválido. Valores válidos: ${ALLOWED_municipio.join(', ')}.`);
   if (!sector) errors.push('Sector es obligatorio.');
   if (sector && !ALLOWED_SECTOR.includes(sector)) errors.push(`Sector inválido. Valores válidos: ${ALLOWED_SECTOR.join(', ')}.`);
   if (!entidad) errors.push('Entidad es obligatoria.');
@@ -852,7 +852,7 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     Sexo,
     Edad,
     motivo_visita,
-    municipios,
+    municipio,
     sector,
     cargo,
     funcion,
