@@ -1088,12 +1088,13 @@ app.get('/api/visitas-calendario-resumen', requireContactColumns, async (req, re
 app.get('/api/visitas-eventos', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus,
-             TO_CHAR(v.fecha, 'YYYY-MM-DD') AS fecha_iso,
-             TO_CHAR(v.hora, 'HH24:MI:SS') AS hora_iso,
-            ${contactSelectSql('c')},
-             c.cedula_rif, c.telefono, c.tipo_contacto,
-             o.codigo_ot, o.detalle AS detalle_ot
+          SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus,
+            TO_CHAR(v.fecha, 'YYYY-MM-DD') AS fecha_iso,
+            TO_CHAR(v.hora, 'HH24:MI:SS') AS hora_iso,
+            v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario, v.cordinacion_referida, v.observaciones,
+           ${contactSelectSql('c')},
+            c.cedula_rif, c.telefono, c.tipo_contacto,
+            o.codigo_ot, o.detalle AS detalle_ot
       FROM VISITAS v
       LEFT JOIN CONTACTOS c ON v.id_contacto = c.id_contacto
       LEFT JOIN ORDENES_TRABAJO o ON v.id_orden = o.id_orden
