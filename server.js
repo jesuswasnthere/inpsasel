@@ -933,8 +933,9 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     }
 
     await pool.query(
-      'INSERT INTO VISITAS (codigo_visita, fecha, hora, tipo_visita, estatus, cordinacion_referida, observaciones, id_contacto, id_usuario, id_orden) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-      [codigo_visita, fecha, hora, 'Personal', estatus, Cordinacion_Referida || cordinacion_referida || null, observaciones || null, id_contacto, id_usuario, id_orden]
+      `INSERT INTO VISITAS (codigo_visita, fecha, hora, tipo_visita, estatus, cordinacion_referida, observaciones, sexo, edad, municipio, sector, cargo, funcion, actividad_economica, funcionario, id_contacto, id_usuario, id_orden)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
+      [codigo_visita, fecha, hora, motivo_visita || 'Personal', estatus, Cordinacion_Referida || cordinacion_referida || null, observaciones || null, Sexo || null, Edad ? Number(Edad) : null, municipio || null, sector || null, cargo || null, funcion || null, actividad_economica || null, funcionario || null, id_contacto, id_usuario, id_orden]
     );
 
     const message = `Visita registrada exitosamente. Código: ${codigo_visita}`;
@@ -962,7 +963,8 @@ app.get('/api/visitas', requireContactColumns, async (req, res) => {
   try {
     const searchTerm = `%${codigo_visita.trim()}%`;
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+          SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+            v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
              ${contactSelectSql('c')},
              c.cedula_rif, c.telefono, c.tipo_contacto,
              o.codigo_ot, o.detalle AS detalle_ot
@@ -987,10 +989,11 @@ app.get('/api/visitas', requireContactColumns, async (req, res) => {
 app.get('/visitas', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
-             ${contactSelectSql('c')},
-             c.cedula_rif, c.telefono, c.tipo_contacto,
-             o.codigo_ot, o.detalle AS detalle_ot
+          SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+            v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
+            ${contactSelectSql('c')},
+            c.cedula_rif, c.telefono, c.tipo_contacto,
+            o.codigo_ot, o.detalle AS detalle_ot
       FROM VISITAS v
       LEFT JOIN CONTACTOS c ON v.id_contacto = c.id_contacto
       LEFT JOIN ORDENES_TRABAJO o ON v.id_orden = o.id_orden
@@ -1008,10 +1011,11 @@ app.get('/visitas', requireContactColumns, async (req, res) => {
 app.get('/api/visitas-del-dia', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
-             ${contactSelectSql('c')},
-             c.cedula_rif, c.telefono, c.tipo_contacto,
-             o.codigo_ot, o.detalle AS detalle_ot
+          SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+            v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
+            ${contactSelectSql('c')},
+            c.cedula_rif, c.telefono, c.tipo_contacto,
+            o.codigo_ot, o.detalle AS detalle_ot
       FROM VISITAS v
       LEFT JOIN CONTACTOS c ON v.id_contacto = c.id_contacto
       LEFT JOIN ORDENES_TRABAJO o ON v.id_orden = o.id_orden
@@ -1114,6 +1118,16 @@ app.get('/api/visitas-eventos', requireContactColumns, async (req, res) => {
           nombre_entidad: visit.nombre_entidad || '',
           telefono: visit.telefono || '',
           tipo_contacto: visit.tipo_contacto || '',
+          sexo: visit.sexo || '',
+          edad: visit.edad || '',
+          municipio: visit.municipio || '',
+          sector: visit.sector || '',
+          cargo: visit.cargo || '',
+          funcion: visit.funcion || '',
+          actividad_economica: visit.actividad_economica || '',
+          funcionario: visit.funcionario || '',
+          cordinacion_referida: visit.cordinacion_referida || '',
+          observaciones: visit.observaciones || '',
           codigo_ot: visit.codigo_ot || '',
           detalle_ot: visit.detalle_ot || '',
           tipo_visita: visit.tipo_visita || '',
@@ -1149,6 +1163,7 @@ app.post('/modify-visit', requireContactColumns, async (req, res) => {
     tipo_contacto,
     codigo_ot,
     detalle_ot
+    , Sexo, Edad, municipio, sector, cargo, funcion, actividad_economica, Cordinacion_Referida, funcionario, observaciones
   } = req.body;
   const contactData = normalizeContactData({ nombre_completo, entidad, nombre_entidad, tipo_contacto });
 
@@ -1218,8 +1233,25 @@ app.post('/modify-visit', requireContactColumns, async (req, res) => {
     }
 
     await pool.query(
-      'UPDATE VISITAS SET fecha = $1, hora = $2, tipo_visita = $3, estatus = $4, id_contacto = $5, id_orden = $6 WHERE codigo_visita = $7',
-      [fecha, hora, tipo_visita, estatus, id_contacto, id_orden, codigo_visita]
+      `UPDATE VISITAS SET
+         fecha = $1,
+         hora = $2,
+         tipo_visita = $3,
+         estatus = $4,
+         cordinacion_referida = $5,
+         observaciones = $6,
+         sexo = $7,
+         edad = $8,
+         municipio = $9,
+         sector = $10,
+         cargo = $11,
+         funcion = $12,
+         actividad_economica = $13,
+         funcionario = $14,
+         id_contacto = $15,
+         id_orden = $16
+       WHERE codigo_visita = $17`,
+      [fecha, hora, tipo_visita, estatus, Cordinacion_Referida || null, observaciones || null, Sexo || null, Edad ? Number(Edad) : null, municipio || null, sector || null, cargo || null, funcion || null, actividad_economica || null, funcionario || null, id_contacto, id_orden, codigo_visita]
     );
 
     const message = `Visita ${codigo_visita} actualizada correctamente.`;
