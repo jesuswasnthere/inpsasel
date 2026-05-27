@@ -295,6 +295,7 @@ function loadVisit(visit) {
   document.getElementById('telefono').value = visit.telefono || '';
   document.getElementById('tipo_contacto').value = visit.tipo_contacto || 'Individual';
   document.getElementById('tipo_visita').value = visit.tipo_visita || 'Técnica';
+  document.getElementById('motivo_visita').value = visit.motivo_visita || visit.tipo_visita || '';
   document.getElementById('estatus').value = visit.estatus || 'Procesada';
   document.getElementById('Sexo').value = visit.sexo || visit.Sexo || 'Masculino';
   document.getElementById('Edad').value = visit.edad || visit.Edad || '';
