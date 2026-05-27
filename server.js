@@ -705,7 +705,8 @@ async function authenticateConfiguredAdmin(username, password) {
   try {
     const roleResult = await pool.query(
       `INSERT INTO ROLES (nombre_rol)
-       VALUES ($1)
+        v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.motivo_visita, v.estatus,
+        v.sexo AS sexo, v.edad AS edad,
        ON CONFLICT (nombre_rol) DO UPDATE SET nombre_rol = EXCLUDED.nombre_rol
        RETURNING id_rol`,
       ['Admin']
@@ -989,8 +990,8 @@ app.get('/api/visitas', requireContactColumns, async (req, res) => {
 app.get('/visitas', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-          SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
-            v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
+       SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.motivo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+         v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
             ${contactSelectSql('c')},
             c.cedula_rif, c.telefono, c.tipo_contacto,
             o.codigo_ot, o.detalle AS detalle_ot
