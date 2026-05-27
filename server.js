@@ -91,7 +91,7 @@ const ALLOWED_FUNCION = ['DDP', 'CSSL', 'SERV', 'TRAB', 'OTRO'];
 const ALLOWED_ESTATUS = ['Procesada', 'Rechasada', 'En Revision', 'Otras'];
 const ALLOWED_municipio = ['Agua Blanca', 'Araure', 'Esteller', 'Guanare', 'Guanarito', 'Monseñor José Vicente de Unda', 'Ospino', 'Páez', 'Papelón', 'San Genaro de Boconoíto', 'San Rafael de Onoto', 'Santa Rosalía', 'Sucre', 'Turén'];
 const ALLOWED_CORDINACION_REFERIDA = ['Inspecciones', 'Educacion', 'Sanciones', 'Salud laboral', 'Psicosocial', 'Epidemiologia'];
-const ALLOWED_TIPOS = ['Técnica', 'Comercial', 'Soporte', 'Inspección', 'Personal', 'Administrativa'];
+const ALLOWED_TIPOS = ['Técnica', 'Comercial', 'Soporte', 'Inspección', 'Personal', 'Administrativa', 'Consulta'];
 const ALLOWED_TIPO_CONTACTO = ['Individual', 'Empresa', 'Organización'];
 let supportsSplitContactFields = false;
 let detectColumnsPromise = null;
@@ -935,7 +935,7 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     await pool.query(
       `INSERT INTO VISITAS (codigo_visita, fecha, hora, tipo_visita, estatus, cordinacion_referida, observaciones, sexo, edad, municipio, sector, cargo, funcion, actividad_economica, funcionario, id_contacto, id_usuario, id_orden)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)`,
-      [codigo_visita, fecha, hora, motivo_visita || 'Personal', estatus, Cordinacion_Referida || cordinacion_referida || null, observaciones || null, Sexo || null, Edad ? Number(Edad) : null, municipio || null, sector || null, cargo || null, funcion || null, actividad_economica || null, funcionario || null, id_contacto, id_usuario, id_orden]
+      [codigo_visita, fecha, hora, 'Personal', estatus, Cordinacion_Referida || cordinacion_referida || null, observaciones || null, Sexo || null, Edad ? Number(Edad) : null, municipio || null, sector || null, cargo || null, funcion || null, actividad_economica || null, funcionario || null, id_contacto, id_usuario, id_orden]
     );
 
     const message = `Visita registrada exitosamente. Código: ${codigo_visita}`;
