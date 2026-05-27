@@ -70,6 +70,33 @@ pool.on('error', (err) => {
   console.error('PostgreSQL pool error:', err && err.message ? err.message : err);
 });
 
+// Ejecutar migraciones SQL al iniciar (si existe el runner)
+const { execFile } = require('child_process');
+async function runMigrationsIfNeeded() {
+  const migrationsRunner = resolveAssetPath('apply_migrations.js');
+  if (!fs.existsSync(migrationsRunner)) {
+    return;
+  }
+
+  return new Promise((resolve) => {
+    console.log('Ejecutando migraciones en la base de datos (si hay nuevas)...');
+    const child = execFile(process.execPath, [migrationsRunner], { env: process.env }, (error, stdout, stderr) => {
+      if (error) {
+        console.warn('Advertencia: las migraciones retornaron un error. Esto puede ser seguro si las migraciones usan IF NOT EXISTS.');
+        console.warn(error && error.message ? error.message : error);
+      }
+      if (stdout) console.log(stdout.toString());
+      if (stderr) console.error(stderr.toString());
+      resolve();
+    });
+    // Safety timeout: si tarda mucho, no bloqueamos el inicio indefinidamente
+    setTimeout(() => {
+      try { child.kill(); } catch (e) {}
+      resolve();
+    }, 30 * 1000);
+  });
+}
+
 function logStartupDbError(err) {
   const dbHost = databaseUrl ? '(connection string)' : (process.env.DB_HOST || '127.0.0.1');
   const dbPort = Number(process.env.DB_PORT || 5432);
@@ -1334,6 +1361,12 @@ app.use((err, req, res, next) => {
 async function startServer() {
   const maxAttempts = 5;
   let currentPort = port;
+
+  try {
+    await runMigrationsIfNeeded();
+  } catch (err) {
+    console.warn('Error ejecutando migraciones al inicio (continuando):', err && err.message ? err.message : err);
+  }
 
   async function tryListen(p) {
     return new Promise((resolve, reject) => {
