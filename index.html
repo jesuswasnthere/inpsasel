@@ -153,23 +153,39 @@
                 <input type="text" id="funcionario" name="funcionario" placeholder="Nombre del funcionario">
             </div>
 
+
+
             <div class="form-group checkbox-group full-width">
-                <label class="checkbox-label">
-                    <input type="checkbox" id="toggle-ot" name="toggle_ot">
-                    Añadir Código OT
-                </label>
+              <label class="checkbox-label">
+                <input type="checkbox" id="toggle-observaciones" name="toggle_observaciones">
+                Añadir Observaciones
+              </label>
+            </div>
+
+            <div id="observaciones-fields" class="hidden-fields full-width">
+              <div class="form-group full-width">
+                <label for="observaciones">Observaciones (Opcional)</label>
+                <textarea id="observaciones" name="observaciones" rows="4" placeholder="Escribe observaciones adicionales aquí"></textarea>
+              </div>
+            </div>
+
+            <div class="form-group checkbox-group full-width">
+              <label class="checkbox-label">
+                <input type="checkbox" id="toggle-ot" name="toggle_ot">
+                Añadir Código OT
+              </label>
             </div>
 
             <div id="ot-fields" class="hidden-fields full-width">
-                <div class="form-group full-width">
-                    <label for="codigo_ot">Código OT (Opcional)</label>
-                    <input type="text" id="codigo_ot" name="codigo_ot" placeholder="Código de orden de trabajo">
-                </div>
+              <div class="form-group full-width">
+                <label for="codigo_ot">Código OT (Opcional)</label>
+                <input type="text" id="codigo_ot" name="codigo_ot" placeholder="Código de orden de trabajo">
+              </div>
 
-                <div class="form-group full-width">
-                    <label for="detalle_ot">Detalle OT (Opcional)</label>
-                    <textarea id="detalle_ot" name="detalle_ot" rows="2" placeholder="Detalle de la orden de trabajo"></textarea>
-                </div>
+              <div class="form-group full-width">
+                <label for="detalle_ot">Detalle OT (Opcional)</label>
+                <textarea id="detalle_ot" name="detalle_ot" rows="2" placeholder="Detalle de la orden de trabajo"></textarea>
+              </div>
             </div>
 
             <button type="submit" class="btn-submit full-width">Registrar Visita</button>
@@ -241,22 +257,39 @@ form.addEventListener('submit', async (event) => {
     messageContainer.appendChild(card);
   }
 });
+  const obsToggle = document.getElementById('toggle-observaciones');
+  const obsFields = document.getElementById('observaciones-fields');
+  const obsTextarea = document.getElementById('observaciones');
+
   const otToggle = document.getElementById('toggle-ot');
   const otFields = document.getElementById('ot-fields');
   const otCode = document.getElementById('codigo_ot');
   const otDetail = document.getElementById('detalle_ot');
 
-  otToggle.addEventListener('change', () => {
-    if (otToggle.checked) {
-      otFields.style.display = 'grid';
-    } else {
-      otFields.style.display = 'none';
-      otCode.value = '';
-      otDetail.value = '';
-    }
-  });
+  if (obsToggle) {
+    obsToggle.addEventListener('change', () => {
+      if (obsToggle.checked) {
+        obsFields.style.display = 'block';
+      } else {
+        obsFields.style.display = 'none';
+        if (obsTextarea) obsTextarea.value = '';
+      }
+    });
+    obsFields.style.display = 'none';
+  }
 
-  otFields.style.display = 'none';
+  if (otToggle) {
+    otToggle.addEventListener('change', () => {
+      if (otToggle.checked) {
+        otFields.style.display = 'grid';
+      } else {
+        otFields.style.display = 'none';
+        if (otCode) otCode.value = '';
+        if (otDetail) otDetail.value = '';
+      }
+    });
+    otFields.style.display = 'none';
+  }
 
   tipoContactoSelect.addEventListener('change', updateContactRequirements);
   updateContactRequirements();
