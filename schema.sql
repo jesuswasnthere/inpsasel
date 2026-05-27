@@ -3,7 +3,7 @@
 -- =======================================================================
 CREATE TYPE tipo_contacto_enum AS ENUM ('Individual', 'Empresa', 'Organización');
 CREATE TYPE tipo_visita_enum AS ENUM ('Técnica', 'Comercial', 'Soporte', 'Inspección', 'Personal', 'Administrativa');
-CREATE TYPE estatus_enum AS ENUM ('Planificada', 'En Curso', 'Completada', 'Revisada', 'Cancelada', 'No Programada', 'Emergencia');
+CREATE TYPE estatus_enum AS ENUM ('Procesada', 'Rechasada', 'En Revision', 'Otras');
 
 -- =======================================================================
 -- 2. TABLAS INDEPENDIENTES (Sin Claves Foráneas)
