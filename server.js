@@ -825,7 +825,9 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     telefono,
     tipo_contacto,
     codigo_ot,
-    detalle_ot
+    detalle_ot,
+    cordinacion_referida,
+    observaciones
   } = req.body;
   const contactData = normalizeContactData({ nombre_completo, entidad, nombre_entidad, tipo_contacto });
 
@@ -896,8 +898,8 @@ app.post('/register-visit', requireContactColumns, async (req, res) => {
     }
 
     await pool.query(
-      'INSERT INTO VISITAS (codigo_visita, fecha, hora, tipo_visita, estatus, id_contacto, id_usuario, id_orden) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-      [codigo_visita, fecha, hora, tipo_visita, estatus, id_contacto, id_usuario, id_orden]
+      'INSERT INTO VISITAS (codigo_visita, fecha, hora, tipo_visita, estatus, cordinacion_referida, observaciones, id_contacto, id_usuario, id_orden) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+      [codigo_visita, fecha, hora, tipo_visita, estatus, cordinacion_referida || null, observaciones || null, id_contacto, id_usuario, id_orden]
     );
 
     const message = `Visita registrada exitosamente. Código: ${codigo_visita}`;
@@ -925,7 +927,7 @@ app.get('/api/visitas', requireContactColumns, async (req, res) => {
   try {
     const searchTerm = `%${codigo_visita.trim()}%`;
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus,
+      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
              ${contactSelectSql('c')},
              c.cedula_rif, c.telefono, c.tipo_contacto,
              o.codigo_ot, o.detalle AS detalle_ot
@@ -950,7 +952,7 @@ app.get('/api/visitas', requireContactColumns, async (req, res) => {
 app.get('/visitas', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus,
+      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
              ${contactSelectSql('c')},
              c.cedula_rif, c.telefono, c.tipo_contacto,
              o.codigo_ot, o.detalle AS detalle_ot
@@ -971,7 +973,7 @@ app.get('/visitas', requireContactColumns, async (req, res) => {
 app.get('/api/visitas-del-dia', requireContactColumns, async (req, res) => {
   try {
     const result = await pool.query(`
-      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus,
+      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
              ${contactSelectSql('c')},
              c.cedula_rif, c.telefono, c.tipo_contacto,
              o.codigo_ot, o.detalle AS detalle_ot

@@ -105,6 +105,8 @@ CREATE TABLE VISITAS (
     hora TIME NOT NULL,
     tipo_visita tipo_visita_enum NOT NULL,
     estatus estatus_enum NOT NULL,
+    cordinacion_referida VARCHAR(255),
+    observaciones TEXT,
     id_contacto INTEGER NOT NULL,
     id_usuario INTEGER NOT NULL, -- El usuario que registra/atiende la visita
     id_orden INTEGER, -- NULLable si la visita no está ligada a una orden de trabajo
