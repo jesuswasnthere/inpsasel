@@ -20,6 +20,10 @@ const APP_ADMIN_PASSWORD = (process.env.APP_ADMIN_PASSWORD || '').trim();
 const APP_ADMIN_PASSWORD_HASH = (process.env.APP_ADMIN_PASSWORD_HASH || '').trim();
 const APP_ADMIN_NAME = (process.env.APP_ADMIN_NAME || 'Administrador INPSASEL').trim();
 const READONLY_VISIT_ROLE_NAME = (process.env.READONLY_VISIT_ROLE_NAME || 'Registro y calendario').trim();
+const READONLY_USER_USERNAME = (process.env.READONLY_USER_USERNAME || '').trim();
+const READONLY_USER_PASSWORD = (process.env.READONLY_USER_PASSWORD || '').trim();
+const READONLY_USER_PASSWORD_HASH = (process.env.READONLY_USER_PASSWORD_HASH || '').trim();
+const READONLY_USER_NAME = (process.env.READONLY_USER_NAME || 'Usuario de registro').trim();
 const FULL_VISIT_ACCESS_ROLE_NAMES = new Set(
   (process.env.FULL_VISIT_ACCESS_ROLE_NAMES || 'Admin,Administrador').split(',').map((name) => name.trim()).filter(Boolean)
 );
@@ -1512,6 +1516,66 @@ app.post('/login', async (req, res) => {
       const match = await bcrypt.compare(password, user.password);
       if (match) {
         return establishLoginSession(req, res, user, redirectTo);
+      }
+    }
+
+    // Fallback: allow login via configured readonly env user even if DB record not present
+    if (READONLY_USER_USERNAME && username === READONLY_USER_USERNAME) {
+      let match = false;
+      if (READONLY_USER_PASSWORD_HASH) {
+        match = await bcrypt.compare(password, READONLY_USER_PASSWORD_HASH);
+      } else if (READONLY_USER_PASSWORD) {
+        match = password === READONLY_USER_PASSWORD;
+      }
+
+      if (match) {
+        if (!hasConfiguredDatabase()) {
+          const fallbackUser = {
+            id_usuario: DEFAULT_USER_ID,
+            username: READONLY_USER_USERNAME,
+            id_rol: null,
+            roleName: READONLY_VISIT_ROLE_NAME,
+          };
+          return establishLoginSession(req, res, fallbackUser, redirectTo);
+        }
+
+        try {
+          let passwordForStorage = READONLY_USER_PASSWORD_HASH;
+          if (!passwordForStorage && READONLY_USER_PASSWORD) {
+            const salt = await bcrypt.genSalt(10);
+            passwordForStorage = await bcrypt.hash(READONLY_USER_PASSWORD, salt);
+          }
+
+          const roleResult = await pool.query(
+            `INSERT INTO ROLES (nombre_rol)
+             VALUES ($1)
+             ON CONFLICT (nombre_rol) DO UPDATE SET nombre_rol = EXCLUDED.nombre_rol
+             RETURNING id_rol, nombre_rol`,
+            [READONLY_VISIT_ROLE_NAME]
+          );
+
+          const userResult = await pool.query(
+            `INSERT INTO USUARIOS (id_rol, nombre_completo, username, password)
+             VALUES ($1, $2, $3, $4)
+             ON CONFLICT (username) DO UPDATE SET
+               id_rol = EXCLUDED.id_rol,
+               nombre_completo = EXCLUDED.nombre_completo,
+               password = EXCLUDED.password
+             RETURNING id_usuario, username, id_rol`,
+            [roleResult.rows[0].id_rol, READONLY_USER_NAME, READONLY_USER_USERNAME, passwordForStorage]
+          );
+
+          return establishLoginSession(req, res, { ...userResult.rows[0], roleName: roleResult.rows[0].nombre_rol }, redirectTo);
+        } catch (err) {
+          console.warn('No se pudo sincronizar el usuario reducido en PostgreSQL:', err && err.message ? err.message : err);
+          const fallbackUser = {
+            id_usuario: DEFAULT_USER_ID,
+            username: READONLY_USER_USERNAME,
+            id_rol: null,
+            roleName: READONLY_VISIT_ROLE_NAME,
+          };
+          return establishLoginSession(req, res, fallbackUser, redirectTo);
+        }
       }
     }
 
