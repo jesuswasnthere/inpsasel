@@ -15,11 +15,11 @@ const DEFAULT_USER_ID = Number(process.env.DEFAULT_USER_ID || 1);
 const SESSION_SECRET = process.env.SESSION_SECRET || 'secreto_ipsasel';
 const AUTH_COOKIE_NAME = 'ipsasel_auth';
 const AUTH_COOKIE_MAX_AGE_MS = Number(process.env.AUTH_COOKIE_MAX_AGE_MS || 8 * 60 * 60 * 1000);
-const APP_ADMIN_USERNAME = process.env.APP_ADMIN_USERNAME || '';
-const APP_ADMIN_PASSWORD = process.env.APP_ADMIN_PASSWORD || '';
-const APP_ADMIN_PASSWORD_HASH = process.env.APP_ADMIN_PASSWORD_HASH || '';
-const APP_ADMIN_NAME = process.env.APP_ADMIN_NAME || 'Administrador INPSASEL';
-const READONLY_VISIT_ROLE_NAME = process.env.READONLY_VISIT_ROLE_NAME || 'Registro y calendario';
+const APP_ADMIN_USERNAME = (process.env.APP_ADMIN_USERNAME || '').trim();
+const APP_ADMIN_PASSWORD = (process.env.APP_ADMIN_PASSWORD || '').trim();
+const APP_ADMIN_PASSWORD_HASH = (process.env.APP_ADMIN_PASSWORD_HASH || '').trim();
+const APP_ADMIN_NAME = (process.env.APP_ADMIN_NAME || 'Administrador INPSASEL').trim();
+const READONLY_VISIT_ROLE_NAME = (process.env.READONLY_VISIT_ROLE_NAME || 'Registro y calendario').trim();
 const FULL_VISIT_ACCESS_ROLE_NAMES = new Set(
   (process.env.FULL_VISIT_ACCESS_ROLE_NAMES || 'Admin,Administrador').split(',').map((name) => name.trim()).filter(Boolean)
 );
