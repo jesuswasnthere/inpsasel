@@ -652,15 +652,15 @@ function signAuthPayload(payload) {
 }
 
 function userCanManageVisits(user) {
-  if (!user || !user.roleName) {
-    return true;
-  }
+  if (!user) return false;
 
+  // If user has an explicit readonly role, deny management
   if (user.roleName === READONLY_VISIT_ROLE_NAME) {
     return false;
   }
 
-  return FULL_VISIT_ACCESS_ROLE_NAMES.has(user.roleName);
+  // Default: only allow if the role is in the full-access set
+  return Boolean(user.roleName) && FULL_VISIT_ACCESS_ROLE_NAMES.has(user.roleName);
 }
 
 function requireVisitManagementPermission(req, res, next) {
