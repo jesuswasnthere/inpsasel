@@ -1,4 +1,3 @@
-JavaScript
 // Variables globales para el control del calendario y el modal
 let calendar;
 let currentEventData = null;
