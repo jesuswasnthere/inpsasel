@@ -52,11 +52,14 @@ async function startServer() {
   const maxAttempts = 5;
   let currentPort = port;
 
-  try {
-    await runMigrationsIfNeeded();
-  } catch (err) {
-    console.warn('Error ejecutando migraciones al inicio (continuando):', err && err.message ? err.message : err);
+  if (process.env.RUN_MIGRATIONS_ON_START === 'true') {
+    try {
+      await runMigrationsIfNeeded();
+    } catch (err) {
+      console.warn('Error ejecutando migraciones al inicio (continuando):', err && err.message ? err.message : err);
+    }
   }
+
   try {
     await ensureDefaultUserExists();
   } catch (err) {

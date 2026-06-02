@@ -15,6 +15,7 @@ function validateVisitBody(body) {
     estatus,
     cedula_rif,
     nombre_completo,
+    telefono,
     Sexo,
     Edad,
     motivo_visita,
@@ -39,14 +40,8 @@ function validateVisitBody(body) {
   if (Edad && (!Number.isInteger(Number(Edad)) || Number(Edad) <= 0)) errors.push('Edad debe ser un número entero positivo.');
   if (!motivo_visita) errors.push('Motivo de visita es obligatorio.');
   if (!cedula_rif) errors.push('Cédula o RIF es obligatorio.');
-  if (!telefono) {
-    // wait, telefono might be required or not? Let's check:
-    // in validateVisitBody:
-    // if (!telefono) errors.push('Teléfono es obligatorio.');
-    // yes, that's what was in server.js
-  }
-  if (!body.telefono) errors.push('Teléfono es obligatorio.');
-  if (body.telefono && body.telefono.length < 7) errors.push('Teléfono parece demasiado corto.');
+  if (!telefono) errors.push('Teléfono es obligatorio.');
+  if (telefono && String(telefono).length < 7) errors.push('Teléfono parece demasiado corto.');
   if (!municipio) errors.push('Municipio es obligatorio.');
   if (municipio && !ALLOWED_municipio.includes(municipio)) errors.push(`Municipio inválido. Valores válidos: ${ALLOWED_municipio.join(', ')}.`);
   if (!sector) errors.push('Sector es obligatorio.');

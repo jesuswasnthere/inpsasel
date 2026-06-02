@@ -42,6 +42,11 @@ async function run() {
   files.sort();
 
   for (const file of files) {
+    if (file.includes('recreate_schema') && process.env.ALLOW_DESTRUCTIVE_MIGRATIONS !== 'true') {
+      console.warn(`Saltando migracion destructiva ${file}. Define ALLOW_DESTRUCTIVE_MIGRATIONS=true para ejecutarla manualmente.`);
+      continue;
+    }
+
     const fullPath = path.join(migrationsDir, file);
     console.log('Ejecutando migración:', file);
     const sql = fs.readFileSync(fullPath, 'utf8');
