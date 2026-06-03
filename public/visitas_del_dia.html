@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="visitas_del_dia.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
 </head>
+
 <body>
     <div class="form-container form-container--wide">
         <div class="actions-row">
@@ -23,12 +24,10 @@
         <div id="errorBox" class="error-box error-box--hidden"></div>
 
         <div class="calendar-shell">
-            <section class="panel">
-                <div id="calendar"></div>
-                <div class="legend">Click en una fecha para consultar sus visitas.</div>
-            </section>
 
-            <section class="panel">
+            <div id="calendar"></div>
+
+            <section class="panel" style="margin-top: 50px;">
                 <h3>Detalle por fecha</h3>
                 <div id="selectedDate" class="selected-date"></div>
                 <div id="emptyBox" class="empty-box empty-box--hidden">No hay visitas para la fecha seleccionada.</div>
