@@ -17,5 +17,6 @@ router.get('/api/visitas-del-dia', visitController.getVisitasDelDia);
 router.get('/api/visitas-por-fecha', visitController.getVisitasPorFecha);
 router.get('/api/visitas-calendario-resumen', visitController.getVisitasCalendarioResumen);
 router.get('/api/visitas-eventos', visitController.getVisitasEventos);
+router.get('/api/visitas-reporte', visitController.getVisitasReporte);
 
 module.exports = router;

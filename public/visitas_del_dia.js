@@ -359,6 +359,195 @@ async function refreshCalendar() {
     await initCalendar();
 }
 
+// Métodos para el modal de Descarga Masiva
+function openBulkModal() {
+    const modal = document.getElementById('bulkReportModal');
+    if (modal) modal.classList.add('open');
+}
+
+function closeBulkModal() {
+    const modal = document.getElementById('bulkReportModal');
+    if (modal) modal.classList.remove('open');
+}
+
+// Calcula el rango de fechas basado en la opción seleccionada
+function calculateDateRange(option) {
+    const today = new Date();
+    let startDate, endDate;
+
+    switch (option) {
+        case 'today':
+            startDate = getTodayISO();
+            endDate = getTodayISO();
+            break;
+        case 'week': {
+            // Obtener el lunes de la semana actual
+            const dayOfWeek = today.getDay(); // 0: Domingo, 1: Lunes...
+            const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+            
+            const monday = new Date(today);
+            monday.setDate(today.getDate() + diffToMonday);
+            
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            
+            const formatDate = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            
+            startDate = formatDate(monday);
+            endDate = formatDate(sunday);
+            break;
+        }
+        case 'month': {
+            const year = today.getFullYear();
+            const month = today.getMonth();
+            const firstDay = new Date(year, month, 1);
+            const lastDay = new Date(year, month + 1, 0);
+            
+            const formatDate = (d) => {
+                const y = d.getFullYear();
+                const m = String(d.getMonth() + 1).padStart(2, '0');
+                const day = String(d.getDate()).padStart(2, '0');
+                return `${y}-${m}-${day}`;
+            };
+            
+            startDate = formatDate(firstDay);
+            endDate = formatDate(lastDay);
+            break;
+        }
+        case 'year': {
+            const year = today.getFullYear();
+            startDate = `${year}-01-01`;
+            endDate = `${year}-12-31`;
+            break;
+        }
+        case 'custom':
+            startDate = document.getElementById('bulkStartDate').value;
+            endDate = document.getElementById('bulkEndDate').value;
+            break;
+    }
+
+    return { startDate, endDate };
+}
+
+// Genera un único PDF conteniendo todas las fichas de visitas en el rango
+async function generateBulkPDF() {
+    const option = document.getElementById('bulkRangeSelect').value;
+    const { startDate, endDate } = calculateDateRange(option);
+
+    if (!startDate || !endDate) {
+        return alert('Por favor, selecciona fechas de inicio y fin válidas.');
+    }
+
+    const generateBtn = document.getElementById('generateBulkPdfBtn');
+    generateBtn.disabled = true;
+    generateBtn.textContent = 'Generando PDF...';
+
+    try {
+        const response = await fetch(`/api/visitas-reporte?fecha_inicio=${encodeURIComponent(startDate)}&fecha_fin=${encodeURIComponent(endDate)}`, {
+            headers: { 'Accept': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error('No se pudo obtener el reporte del servidor.');
+        }
+
+        const data = await response.json();
+        const visits = Array.isArray(data.visits) ? data.visits : [];
+
+        if (visits.length === 0) {
+            alert('No se encontraron visitas en el rango seleccionado.');
+            return;
+        }
+
+        // Crear contenedor temporal para renderizar las páginas del PDF
+        const container = document.createElement('div');
+        container.style.width = '800px';
+        container.style.fontFamily = 'Arial, Helvetica, sans-serif';
+        container.style.color = '#0f172a';
+        container.style.background = '#ffffff';
+
+        visits.forEach((visit, index) => {
+            const page = document.createElement('div');
+            page.className = 'pdf-page';
+            // Salto de página para todas las hojas excepto la última
+            if (index < visits.length - 1) {
+                page.style.pageBreakAfter = 'always';
+                page.style.breakAfter = 'page';
+            }
+            page.style.padding = '30px';
+            page.style.boxSizing = 'border-box';
+
+            const rows = [
+                ['Código', visit.codigo_visita],
+                ['Fecha', formatDateLabel(visit.fecha.slice(0, 10))],
+                ['Hora', visit.hora],
+                ['Tipo de visita', visit.tipo_visita],
+                ['Motivo de visita', visit.motivo_visita || 'No aplica'],
+                ['Estatus', visit.estatus],
+                ['Nombre completo', visit.nombre_completo || 'No aplica'],
+                ['Entidad', visit.entidad || 'No aplica'],
+                ['Cédula/RIF', visit.cedula_rif],
+                ['Teléfono', visit.telefono],
+                ['Sexo', visit.sexo || ''],
+                ['Edad', visit.edad || ''],
+                ['Municipio', visit.municipio || ''],
+                ['Sector', visit.sector || ''],
+                ['Cargo', visit.cargo || ''],
+                ['Función', visit.funcion || ''],
+                ['Actividad económica', visit.actividad_economica || ''],
+                ['Funcionario', visit.funcionario || ''],
+                ['Tipo de contacto', visit.tipo_contacto || 'Individual'],
+                ['Código OT', visit.codigo_ot || 'No aplica'],
+                ['Detalle OT', visit.detalle_ot || 'No aplica']
+            ];
+
+            page.innerHTML = `
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #2563eb; padding-bottom: 12px; margin-bottom: 24px;">
+                    <h2 style="margin: 0; color: #1e3a8a; font-size: 1.6rem; font-weight: 800;">REPORTE DE VISITA INPSASEL</h2>
+                    <span style="font-weight: bold; font-size: 1.1rem; color: #2563eb;">${visit.codigo_visita}</span>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px;">
+                    ${rows.map(([label, value]) => `
+                        <div style="padding: 10px 12px; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 8px; background: #f8fafc;">
+                            <div style="font-weight: 700; color: #475569; font-size: 0.75rem; text-transform: uppercase; margin-bottom: 4px; letter-spacing: 0.05em;">${label}</div>
+                            <div style="color: #0f172a; font-size: 0.95rem; word-break: break-word;">${safeText(value)}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 40px; border-top: 1px dashed #cbd5e1; padding-top: 14px; display: flex; justify-content: space-between; font-size: 0.8rem; color: #64748b;">
+                    <span>Generado automáticamente el: ${new Date().toLocaleDateString('es-VE')}</span>
+                    <span>Página ${index + 1} de ${visits.length}</span>
+                </div>
+            `;
+
+            container.appendChild(page);
+        });
+
+        const opt = {
+            margin:       10,
+            filename:     `Reporte_Masivo_${startDate}_al_${endDate}.pdf`,
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { scale: 2, useCORS: true },
+            jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+            pagebreak:    { mode: ['avoid-all', 'css', 'legacy'] }
+        };
+
+        await html2pdf().set(opt).from(container).save();
+        closeBulkModal();
+    } catch (error) {
+        console.error(error);
+        alert('Ocurrió un error al generar el PDF masivo: ' + error.message);
+    } finally {
+        generateBtn.disabled = false;
+        generateBtn.textContent = 'Descargar PDF Masivo';
+    }
+}
+
 // --- PROTECCIÓN DE CARGA (Asegura que el DOM exista antes de mapear eventos) ---
 document.addEventListener('DOMContentLoaded', function() {
     // Listeners para los botones e interacciones de la interfaz
@@ -403,6 +592,30 @@ document.addEventListener('DOMContentLoaded', function() {
         clearSearchBtn.addEventListener('click', () => {
             searchInput.value = '';
             applyFilter();
+        });
+    }
+
+    // Listeners para el modal de descarga masiva
+    document.getElementById('bulkReportBtn').addEventListener('click', openBulkModal);
+    document.getElementById('bulkCloseBtn').addEventListener('click', closeBulkModal);
+    document.getElementById('generateBulkPdfBtn').addEventListener('click', generateBulkPDF);
+    
+    // Cierre de modal de descarga masiva al hacer click fuera
+    document.getElementById('bulkReportModal').addEventListener('click', function(event) {
+        if (event.target.id === 'bulkReportModal') {
+            closeBulkModal();
+        }
+    });
+
+    const bulkRangeSelect = document.getElementById('bulkRangeSelect');
+    const customRangeFields = document.getElementById('customRangeFields');
+    if (bulkRangeSelect && customRangeFields) {
+        bulkRangeSelect.addEventListener('change', () => {
+            if (bulkRangeSelect.value === 'custom') {
+                customRangeFields.style.display = 'flex';
+            } else {
+                customRangeFields.style.display = 'none';
+            }
         });
     }
 

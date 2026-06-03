@@ -9,12 +9,12 @@
     <link rel="stylesheet" href="visitas_del_dia.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css">
 </head>
-
 <body>
     <div class="form-container form-container--wide">
         <div class="actions-row">
             <a href="/menu" class="btn-secondary back-btn">Volver al menú</a>
             <button id="reloadBtn" class="btn-secondary back-btn" type="button">Actualizar</button>
+            <button id="bulkReportBtn" class="btn-secondary back-btn" type="button">Reporte Masivo</button>
         </div>
 
         <h2>Calendario de visitas</h2>
@@ -32,10 +32,12 @@
         <div id="errorBox" class="error-box error-box--hidden"></div>
 
         <div class="calendar-shell">
+            <section class="panel">
+                <div id="calendar"></div>
+                <div class="legend">Click en una fecha para consultar sus visitas.</div>
+            </section>
 
-            <div id="calendar"></div>
-
-            <section class="panel" style="margin-top: 50px;">
+            <section class="panel">
                 <h3>Detalle por fecha</h3>
                 <div id="selectedDate" class="selected-date"></div>
                 <div id="emptyBox" class="empty-box empty-box--hidden">No hay visitas para la fecha seleccionada.</div>
@@ -49,6 +51,7 @@
         </div>
     </div>
 
+    <!-- Modal para Detalle de Visita Individual -->
     <div id="eventModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="wizardTitle">
         <div class="wizard-modal">
             <div class="wizard-header">
@@ -59,6 +62,43 @@
                 </div>
             </div>
             <div id="wizardContent" class="wizard-content"></div>
+        </div>
+    </div>
+
+    <!-- Modal para Descarga Masiva de Reportes -->
+    <div id="bulkReportModal" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="bulkTitle">
+        <div class="wizard-modal" style="width: min(100%, 500px);">
+            <div class="wizard-header">
+                <h4 id="bulkTitle" class="wizard-title">Descarga Masiva de Reportes</h4>
+                <div class="wizard-header__actions">
+                    <button id="bulkCloseBtn" class="wizard-close" type="button" aria-label="Cerrar">&times;</button>
+                </div>
+            </div>
+            <div class="wizard-content" style="display: flex; flex-direction: column; gap: 16px; padding: 24px;">
+                <div class="form-group">
+                    <label for="bulkRangeSelect" style="font-weight: 700; color: #334155; margin-bottom: 6px;">Seleccionar Rango de Reportes</label>
+                    <select id="bulkRangeSelect" style="padding: 12px; border: 1px solid rgba(148,163,184,0.35); border-radius: 10px;">
+                        <option value="today">Diario (Hoy)</option>
+                        <option value="week">Semanal (Semana Actual)</option>
+                        <option value="month">Mensual (Mes Actual)</option>
+                        <option value="year">Anual (Año Actual)</option>
+                        <option value="custom">Personalizado (Rango de Fechas)</option>
+                    </select>
+                </div>
+
+                <div id="customRangeFields" class="form-group" style="display: none; flex-direction: column; gap: 12px;">
+                    <div class="form-group">
+                        <label for="bulkStartDate" style="font-weight: 700; color: #334155; margin-bottom: 6px;">Fecha Inicio</label>
+                        <input type="date" id="bulkStartDate" style="padding: 12px; border: 1px solid rgba(148,163,184,0.35); border-radius: 10px;" />
+                    </div>
+                    <div class="form-group">
+                        <label for="bulkEndDate" style="font-weight: 700; color: #334155; margin-bottom: 6px;">Fecha Fin</label>
+                        <input type="date" id="bulkEndDate" style="padding: 12px; border: 1px solid rgba(148,163,184,0.35); border-radius: 10px;" />
+                    </div>
+                </div>
+
+                <button id="generateBulkPdfBtn" class="btn-submit" type="button" style="margin-top: 10px; width: 100%; border-radius: 10px; padding: 14px;">Descargar PDF Masivo</button>
+            </div>
         </div>
     </div>
 

@@ -544,6 +544,37 @@ async function deleteVisit(req, res) {
   }
 }
 
+async function getVisitasReporte(req, res) {
+  const { fecha_inicio, fecha_fin } = req.query;
+
+  if (!fecha_inicio || !fecha_fin) {
+    return res.status(400).json({
+      success: false,
+      message: 'Parámetros fecha_inicio y fecha_fin son requeridos.'
+    });
+  }
+
+  try {
+    const result = await pool.query(`
+      SELECT v.codigo_visita, v.fecha, v.hora, v.tipo_visita, v.motivo_visita, v.estatus, v.cordinacion_referida, v.observaciones,
+             v.sexo AS sexo, v.edad AS edad, v.municipio AS municipio, v.sector AS sector, v.cargo AS cargo, v.funcion AS funcion, v.actividad_economica AS actividad_economica, v.funcionario AS funcionario,
+             ${contactSelectSql('c')},
+             c.cedula_rif, c.telefono, c.tipo_contacto,
+             o.codigo_ot, o.detalle AS detalle_ot
+      FROM VISITAS v
+      LEFT JOIN CONTACTOS c ON v.id_contacto = c.id_contacto
+      LEFT JOIN ORDENES_TRABAJO o ON v.id_orden = o.id_orden
+      WHERE v.fecha BETWEEN $1::date AND $2::date
+      ORDER BY v.fecha ASC, v.hora ASC
+    `, [fecha_inicio, fecha_fin]);
+
+    return res.json({ success: true, visits: result.rows });
+  } catch (err) {
+    console.error('Error al obtener reporte de visitas:', err && err.message ? err.message : err);
+    return res.status(500).json({ success: false, message: 'Error interno al obtener el reporte de visitas.' });
+  }
+}
+
 module.exports = {
   requireContactColumns,
   registerVisit,
@@ -555,4 +586,5 @@ module.exports = {
   getVisitasEventos,
   modifyVisit,
   deleteVisit,
+  getVisitasReporte,
 };
