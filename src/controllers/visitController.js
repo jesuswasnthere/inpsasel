@@ -386,6 +386,7 @@ async function modifyVisit(req, res) {
     fecha,
     hora,
     tipo_visita,
+    motivo_visita,
     estatus,
     cedula_rif,
     nombre_completo,
