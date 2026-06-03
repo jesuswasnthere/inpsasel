@@ -1,6 +1,8 @@
 // Variables globales para el control del calendario y el modal
 let calendar;
 let currentEventData = null;
+let allEvents = [];
+let currentSelectedDate = '';
 
 // Función utilitaria para evitar valores nulos o indefinidos en la interfaz
 function safeText(value) {
@@ -196,8 +198,20 @@ function renderCards(visits) {
     });
 }
 
+// Filtra la lista global de eventos para el calendario según la cédula/RIF
+function getFilteredEvents() {
+    const searchInput = document.getElementById('searchCedulaRif');
+    const filterVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+    if (!filterVal) return allEvents;
+    return allEvents.filter(e => {
+        const props = e.extendedProps || {};
+        return safeText(props.cedula_rif).toLowerCase().includes(filterVal);
+    });
+}
+
 // Consulta las visitas de una fecha específica a la API del backend
 async function loadVisitasByDate(isoDate) {
+    currentSelectedDate = isoDate;
     const status = document.getElementById('status');
     const errorBox = document.getElementById('errorBox');
     const emptyBox = document.getElementById('emptyBox');
@@ -222,14 +236,24 @@ async function loadVisitasByDate(isoDate) {
         const data = await response.json();
         const visits = Array.isArray(data.visits) ? data.visits : [];
 
-        if (visits.length === 0) {
-            status.textContent = 'Sin resultados para la fecha seleccionada.';
+        // Filtrar localmente por cédula/RIF si hay un valor ingresado
+        const searchInput = document.getElementById('searchCedulaRif');
+        const filterVal = searchInput ? searchInput.value.trim().toLowerCase() : '';
+        let filteredVisits = visits;
+        if (filterVal) {
+            filteredVisits = visits.filter(v => safeText(v.cedula_rif).toLowerCase().includes(filterVal));
+        }
+
+        if (filteredVisits.length === 0) {
+            status.textContent = filterVal 
+                ? 'Sin resultados coincidentes para la Cédula/RIF en la fecha seleccionada.'
+                : 'Sin resultados para la fecha seleccionada.';
             emptyBox.style.display = 'block';
             return;
         }
 
-        renderCards(visits);
-        status.textContent = `Total de visitas para la fecha seleccionada: ${visits.length}`;
+        renderCards(filteredVisits);
+        status.textContent = `Total de visitas para la fecha seleccionada: ${filteredVisits.length}`;
         tableWrapper.style.display = 'block';
     } catch (error) {
         status.textContent = 'Error al cargar visitas por fecha.';
@@ -257,9 +281,12 @@ async function initCalendar() {
     const status = document.getElementById('status');
     const errorBox = document.getElementById('errorBox');
     const todayISO = getTodayISO();
+    currentSelectedDate = todayISO;
 
     try {
         const events = await loadCalendarEvents();
+        allEvents = events;
+        
         calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
             locale: 'es',
             initialView: 'dayGridMonth',
@@ -276,7 +303,7 @@ async function initCalendar() {
                 week: 'Semana',
                 day: 'Día'
             },
-            events,
+            events: getFilteredEvents(),
             dateClick: function(info) {
                 loadVisitasByDate(info.dateStr);
             },
@@ -313,7 +340,9 @@ async function initCalendar() {
 
         calendar.render();
         await loadVisitasByDate(todayISO);
-        status.textContent = `Calendario cargado. Eventos totales: ${events.length}`;
+        const totalCount = allEvents.length;
+        const filteredCount = getFilteredEvents().length;
+        status.textContent = `Calendario cargado. Eventos mostrados: ${filteredCount} de ${totalCount}`;
         errorBox.style.display = 'none';
     } catch (error) {
         status.textContent = 'Error al cargar el calendario.';
@@ -350,6 +379,32 @@ document.addEventListener('DOMContentLoaded', function() {
             closeEventModal();
         }
     });
+
+    // Filtro por Cédula / RIF en tiempo real
+    const searchInput = document.getElementById('searchCedulaRif');
+    const clearSearchBtn = document.getElementById('clearSearchBtn');
+
+    function applyFilter() {
+        if (calendar) {
+            calendar.removeAllEvents();
+            calendar.addEventSource(getFilteredEvents());
+            
+            const totalCount = allEvents.length;
+            const filteredCount = getFilteredEvents().length;
+            document.getElementById('status').textContent = `Filtro aplicado. Eventos mostrados: ${filteredCount} de ${totalCount}`;
+        }
+        loadVisitasByDate(currentSelectedDate);
+    }
+
+    if (searchInput) {
+        searchInput.addEventListener('input', applyFilter);
+    }
+    if (clearSearchBtn) {
+        clearSearchBtn.addEventListener('click', () => {
+            searchInput.value = '';
+            applyFilter();
+        });
+    }
 
     // Arranca el flujo de la aplicación
     initCalendar();

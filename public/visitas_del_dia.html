@@ -20,6 +20,14 @@
         <h2>Calendario de visitas</h2>
         <p class="subtitle">Visualiza visitas de hoy y otros días. Haz click sobre una fecha para ver su detalle.</p>
 
+        <div class="form-group" style="margin: 0 auto 24px auto; max-width: 480px;">
+            <label for="searchCedulaRif" style="text-align: center; display: block; font-weight: 700; color: #1e3a8a; margin-bottom: 6px;">Filtrar por Cédula / RIF</label>
+            <div class="search-inline" style="margin-top: 0;">
+                <input type="text" id="searchCedulaRif" placeholder="Ingresa cédula o RIF para filtrar..." />
+                <button type="button" id="clearSearchBtn" class="btn-secondary" style="margin-top: 0; padding: 12px 20px; white-space: nowrap;">Limpiar</button>
+            </div>
+        </div>
+
         <div id="status" class="status-row">Cargando calendario...</div>
         <div id="errorBox" class="error-box error-box--hidden"></div>
 
