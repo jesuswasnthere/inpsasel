@@ -49,10 +49,10 @@ async function ensureContactColumns() {
 }
 
 function normalizeContactData(body) {
-  const tipoContacto = (body.tipo_contacto || '').trim();
-  const legacyNombreEntidad = (body.nombre_entidad || '').trim();
-  let nombreCompleto = (body.nombre_completo || '').trim();
-  let entidad = (body.entidad || '').trim();
+  const tipoContacto = String(body.tipo_contacto || '').trim();
+  const legacyNombreEntidad = String(body.nombre_entidad || '').trim();
+  let nombreCompleto = String(body.nombre_completo || '').trim();
+  let entidad = String(body.entidad || '').trim();
 
   if (!nombreCompleto && tipoContacto === 'Individual') {
     nombreCompleto = legacyNombreEntidad;
