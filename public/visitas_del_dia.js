@@ -96,6 +96,7 @@ function generatePDF() {
 }
 
 // Obtiene la fecha actual en formato ISO (YYYY-MM-DD) respetando la zona horaria local
+// Corregido: para usar la fecha en hora de Venezuela (UTC-4) o local del navegador del cliente
 function getTodayISO() {
     const now = new Date();
     const y = now.getFullYear();
@@ -116,26 +117,82 @@ function formatDateLabel(isoDate) {
     });
 }
 
-// Renderiza las filas correspondientes dentro de la tabla de detalles
-function renderRows(visits) {
-    const tbody = document.getElementById('visitasBody');
-    tbody.innerHTML = '';
+// Renderiza las visitas como tarjetas dentro del contenedor de detalles
+function renderCards(visits) {
+    const container = document.getElementById('visitasCardsContainer');
+    container.innerHTML = '';
 
     visits.forEach((visit) => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${safeText(visit.codigo_visita)}</td>
-            <td>${safeText(visit.hora).slice(0, 5)}</td>
-            <td>${safeText(visit.tipo_visita)}</td>
-            <td>${safeText(visit.estatus)}</td>
-            <td>${safeText(visit.nombre_completo)}</td>
-            <td>${safeText(visit.nombre_entidad)}</td>
-            <td>${safeText(visit.cedula_rif)}</td>
-            <td>${safeText(visit.telefono)}</td>
-            <td>${safeText(visit.codigo_ot)}</td>
-            <td>${safeText(visit.detalle_ot)}</td>
+        const card = document.createElement('div');
+        card.className = 'visit-card';
+        
+        let statusClass = 'status-default';
+        if (visit.estatus === 'Procesada') statusClass = 'status-procesada';
+        else if (visit.estatus === 'Rechasada') statusClass = 'status-rechasada';
+        else if (visit.estatus === 'En Revision') statusClass = 'status-revision';
+        else if (visit.estatus === 'Otras') statusClass = 'status-otras';
+
+        const visitorName = visit.nombre_completo || 'Visitante';
+        const entityName = visit.entidad || visit.nombre_entidad || '';
+        const displayName = entityName && entityName !== visitorName 
+            ? `${visitorName} (${entityName})` 
+            : visitorName;
+
+        card.innerHTML = `
+            <div class="visit-card-header">
+                <div class="visit-card-time-badge">
+                    <svg class="icon-clock" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>${safeText(visit.hora).slice(0, 5)}</span>
+                </div>
+                <span class="visit-card-status-badge ${statusClass}">${safeText(visit.estatus)}</span>
+            </div>
+            <div class="visit-card-body">
+                <h4 class="visit-card-title">${safeText(displayName)}</h4>
+                <div class="visit-card-meta">
+                    <p><strong>Cédula/RIF:</strong> ${safeText(visit.cedula_rif)}</p>
+                    <p><strong>Teléfono:</strong> ${safeText(visit.telefono)}</p>
+                    <p><strong>Motivo:</strong> ${safeText(visit.motivo_visita || visit.tipo_visita)}</p>
+                </div>
+            </div>
+            <div class="visit-card-footer">
+                <button class="btn-card-action" type="button">Ver Detalles</button>
+            </div>
         `;
-        tbody.appendChild(tr);
+        
+        // Agregar manejador para abrir el modal con el detalle completo
+        card.querySelector('.btn-card-action').addEventListener('click', () => {
+            openEventModal({
+                codigo_visita: visit.codigo_visita,
+                fecha: visit.fecha,
+                hora: visit.hora,
+                tipo_visita: visit.tipo_visita,
+                motivo_visita: visit.motivo_visita,
+                estatus: visit.estatus,
+                nombre_completo: visit.nombre_completo,
+                entidad: visit.entidad,
+                nombre_entidad: visit.nombre_entidad,
+                cedula_rif: visit.cedula_rif,
+                telefono: visit.telefono,
+                sexo: visit.sexo || visit.Sexo,
+                edad: visit.edad || visit.Edad,
+                municipio: visit.municipio,
+                sector: visit.sector,
+                cargo: visit.cargo,
+                funcion: visit.funcion,
+                actividad_economica: visit.actividad_economica,
+                funcionario: visit.funcionario,
+                tipo_contacto: visit.tipo_contacto || 'Individual',
+                cordinacion_referida: visit.cordinacion_referida || visit.Cordinacion_Referida,
+                observaciones: visit.observaciones,
+                codigo_ot: visit.codigo_ot,
+                detalle_ot: visit.detalle_ot
+            });
+        });
+        
+        container.appendChild(card);
     });
 }
 
@@ -171,7 +228,7 @@ async function loadVisitasByDate(isoDate) {
             return;
         }
 
-        renderRows(visits);
+        renderCards(visits);
         status.textContent = `Total de visitas para la fecha seleccionada: ${visits.length}`;
         tableWrapper.style.display = 'block';
     } catch (error) {

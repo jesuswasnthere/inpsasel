@@ -28,6 +28,7 @@
     border: 1px solid rgba(148, 163, 184, 0.35);
     border-radius: 16px;
     padding: 16px;
+    min-width: 0;
 }
 
 /* ----------------------------------------------------------
@@ -307,6 +308,139 @@ tbody tr:hover {
         padding: 8px 10px;
     }
 }
+
+/* ============================================================
+   Tarjetas de Visita (Visit Cards)
+   ============================================================ */
+.visits-cards-container {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 10px;
+}
+
+.visit-card {
+    background: #ffffff;
+    border: 1px solid rgba(148, 163, 184, 0.22);
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.05), 0 2px 4px -2px rgba(15, 23, 42, 0.05);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.visit-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -4px rgba(15, 23, 42, 0.08);
+    border-color: rgba(37, 99, 235, 0.3);
+}
+
+.visit-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+}
+
+.visit-card-time-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+}
+
+.icon-clock {
+    width: 15px;
+    height: 15px;
+    color: #94a3b8;
+}
+
+.visit-card-status-badge {
+    padding: 4px 12px;
+    border-radius: 9999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-procesada {
+    background: #e2fbf0;
+    color: #0d9488;
+}
+
+.status-rechasada {
+    background: #ffe4e6;
+    color: #e11d48;
+}
+
+.status-revision {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.status-otras {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.visit-card-title {
+    margin: 0;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #1e3a8a;
+    line-height: 1.4;
+}
+
+.visit-card-meta {
+    font-size: 0.88rem;
+    color: #64748b;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.visit-card-meta p {
+    margin: 0;
+}
+
+.visit-card-meta strong {
+    color: #475569;
+}
+
+.visit-card-footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 4px;
+}
+
+.btn-card-action {
+    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+    color: #ffffff;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+}
+
+.btn-card-action:hover {
+    background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px -1px rgba(37, 99, 235, 0.3);
+}
+
+.btn-card-action:active {
+    transform: translateY(0);
+}
+
 
 
 
