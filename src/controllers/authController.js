@@ -205,6 +205,20 @@ async function login(req, res) {
   const rawPassword = req.body && typeof req.body.password !== 'undefined' ? String(req.body.password) : '';
   const redirectTo = sanitizeRedirect(req.body && req.body.next ? req.body.next : undefined);
 
+  // Debug log to confirm the function is invoked in server environments (no passwords logged)
+  try {
+    console.info('[login] invoked', {
+      host: req.headers && req.headers.host,
+      origin: req.headers && req.headers.origin,
+      method: req.method,
+      path: req.path,
+      usernameProvided: Boolean(rawUsername),
+      remoteAddr: req.ip || null,
+    });
+  } catch (e) {
+    // never fail due to logging
+  }
+
   if (!rawUsername || !rawPassword) {
     if (wantsJsonResponse(req)) {
       return res.status(400).json({ success: false, message: 'Usuario y contraseña son requeridos.' });
