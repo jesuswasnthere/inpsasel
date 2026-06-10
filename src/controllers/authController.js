@@ -7,6 +7,7 @@ const {
   clearAuthCookie,
   DEFAULT_USER_ID,
   READONLY_VISIT_ROLE_NAME,
+  wantsJsonResponse,
 } = require('../middlewares/auth');
 
 const APP_ADMIN_USERNAME = (process.env.APP_ADMIN_USERNAME || '').trim();
@@ -200,101 +201,70 @@ async function ensureReadonlyUserExists() {
 }
 
 async function login(req, res) {
-  const { username, password, next } = req.body;
-  const redirectTo = sanitizeRedirect(next);
+  const rawUsername = req.body && typeof req.body.username !== 'undefined' ? String(req.body.username) : '';
+  const rawPassword = req.body && typeof req.body.password !== 'undefined' ? String(req.body.password) : '';
+  const redirectTo = sanitizeRedirect(req.body && req.body.next ? req.body.next : undefined);
 
-  if (!username || !password) {
-    return res.redirect(303, `/login?error=${encodeURIComponent('Ingrese usuario y contrasena.')}&next=${encodeURIComponent(redirectTo)}`);
+  if (!rawUsername || !rawPassword) {
+    if (wantsJsonResponse(req)) {
+      return res.status(400).json({ success: false, message: 'Usuario y contraseña son requeridos.' });
+    }
+    return res.redirect(303, `/login?error=${encodeURIComponent('Usuario y contraseña son requeridos.')}`);
   }
 
+  const username = rawUsername.trim();
+  if (username.length === 0 || username.length > 150) {
+    if (wantsJsonResponse(req)) {
+      return res.status(400).json({ success: false, message: 'Nombre de usuario inválido.' });
+    }
+    return res.redirect(303, `/login?error=${encodeURIComponent('Nombre de usuario inválido')}`);
+  }
+
+  const password = rawPassword;
+
   try {
-    if (APP_ADMIN_USERNAME && username === APP_ADMIN_USERNAME) {
-      const configuredAdmin = await authenticateConfiguredAdmin(username, password);
-      if (configuredAdmin) {
-        return establishLoginSession(req, res, configuredAdmin, redirectTo);
-      }
+    const query = {
+      text: `SELECT u.id_usuario, u.username, u.password, u.id_rol, r.nombre_rol AS roleName
+             FROM USUARIOS u
+             LEFT JOIN ROLES r ON r.id_rol = u.id_rol
+             WHERE u.username = $1
+             LIMIT 1`,
+      values: [username],
+    };
 
-      return res.redirect(303, `/login?error=${encodeURIComponent('Usuario o contraseña incorrectos.')}&next=${encodeURIComponent(redirectTo)}`);
+    const result = await pool.query(query);
+    if (!result || result.rowCount === 0) {
+      if (wantsJsonResponse(req)) {
+        return res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
+      }
+      return res.redirect(303, `/login?error=${encodeURIComponent('Credenciales incorrectas.')}`);
     }
 
-    const result = await pool.query(
-      `SELECT u.id_usuario, u.username, u.password, u.id_rol, COALESCE(r.nombre_rol, '') AS roleName
-       FROM USUARIOS u
-       LEFT JOIN ROLES r ON r.id_rol = u.id_rol
-       WHERE u.username = $1`,
-      [username]
-    );
-    if (result.rows.length > 0) {
-      const user = result.rows[0];
-      const match = await bcrypt.compare(password, user.password);
-      if (match) {
-        return establishLoginSession(req, res, user, redirectTo);
+    const dbUser = result.rows[0];
+    const storedHash = dbUser.password ? String(dbUser.password) : '';
+    const passwordMatch = storedHash ? await bcrypt.compare(password, storedHash) : false;
+
+    if (!passwordMatch) {
+      if (wantsJsonResponse(req)) {
+        return res.status(401).json({ success: false, message: 'Credenciales incorrectas.' });
       }
+      return res.redirect(303, `/login?error=${encodeURIComponent('Credenciales incorrectas.')}`);
     }
 
-    if (READONLY_USER_USERNAME && username === READONLY_USER_USERNAME) {
-      let match = false;
-      if (READONLY_USER_PASSWORD_HASH) {
-        match = await bcrypt.compare(password, READONLY_USER_PASSWORD_HASH);
-      } else if (READONLY_USER_PASSWORD) {
-        match = password === READONLY_USER_PASSWORD;
-      }
+    const user = {
+      id_usuario: dbUser.id_usuario,
+      username: dbUser.username,
+      id_rol: dbUser.id_rol,
+      roleName: dbUser.roleName || '',
+    };
 
-      if (match) {
-        if (!hasConfiguredDatabase()) {
-          const fallbackUser = {
-            id_usuario: DEFAULT_USER_ID,
-            username: READONLY_USER_USERNAME,
-            id_rol: null,
-            roleName: READONLY_VISIT_ROLE_NAME,
-          };
-          return establishLoginSession(req, res, fallbackUser, redirectTo);
-        }
-
-        try {
-          let passwordForStorage = READONLY_USER_PASSWORD_HASH;
-          if (!passwordForStorage && READONLY_USER_PASSWORD) {
-            const salt = await bcrypt.genSalt(10);
-            passwordForStorage = await bcrypt.hash(READONLY_USER_PASSWORD, salt);
-          }
-
-          const roleResult = await pool.query(
-            `INSERT INTO ROLES (nombre_rol)
-             VALUES ($1)
-             ON CONFLICT (nombre_rol) DO UPDATE SET nombre_rol = EXCLUDED.nombre_rol
-             RETURNING id_rol, nombre_rol`,
-            [READONLY_VISIT_ROLE_NAME]
-          );
-
-          const userResult = await pool.query(
-            `INSERT INTO USUARIOS (id_rol, nombre_completo, username, password)
-             VALUES ($1, $2, $3, $4)
-             ON CONFLICT (username) DO UPDATE SET
-               id_rol = EXCLUDED.id_rol,
-               nombre_completo = EXCLUDED.nombre_completo,
-               password = EXCLUDED.password
-             RETURNING id_usuario, username, id_rol`,
-            [roleResult.rows[0].id_rol, READONLY_USER_NAME, READONLY_USER_USERNAME, passwordForStorage]
-          );
-
-          return establishLoginSession(req, res, { ...userResult.rows[0], roleName: roleResult.rows[0].nombre_rol }, redirectTo);
-        } catch (err) {
-          console.warn('No se pudo sincronizar el usuario reducido en PostgreSQL:', err && err.message ? err.message : err);
-          const fallbackUser = {
-            id_usuario: DEFAULT_USER_ID,
-            username: READONLY_USER_USERNAME,
-            id_rol: null,
-            roleName: READONLY_VISIT_ROLE_NAME,
-          };
-          return establishLoginSession(req, res, fallbackUser, redirectTo);
-        }
-      }
-    }
-
-    return res.redirect(303, `/login?error=${encodeURIComponent('Usuario o contraseña incorrectos.')}&next=${encodeURIComponent(redirectTo)}`);
+    return establishLoginSession(req, res, user, redirectTo);
   } catch (err) {
-    console.error(err);
-    return res.redirect(303, `/login?error=${encodeURIComponent('No se pudo validar el acceso. Intente nuevamente.')}&next=${encodeURIComponent(redirectTo)}`);
+    console.error('Error en login:', err && err.stack ? err.stack : err);
+    if (wantsJsonResponse(req)) {
+      return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    }
+    return res.redirect(303, `/login?error=${encodeURIComponent('Error interno del servidor.')}`);
   }
 }
 
