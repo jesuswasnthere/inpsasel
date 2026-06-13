@@ -1,15 +1,14 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import type { Database } from '@/types/database'
 
 /**
- * Cliente Supabase para Server Components, Server Actions y Route Handlers.
- * Lee y escribe cookies de sesión automáticamente.
+ * If using Fluid compute: Don't put this client in a global variable. Always create a new client within each
+ * function when using it.
  */
 export async function createClient() {
   const cookieStore = await cookies()
 
-  return createServerClient<Database>(
+  return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
     {
@@ -23,8 +22,9 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // En Server Components las cookies son de solo lectura — ignorar.
-            // Las Server Actions y Route Handlers sí pueden escribirlas.
+            // The `setAll` method was called from a Server Component.
+            // This can be ignored if you have middleware refreshing
+            // user sessions.
           }
         },
       },

@@ -7,7 +7,7 @@ export function EliminarVisitaForm() {
   const [state, action, isPending] = useActionState(eliminarVisitaAction, null)
 
   return (
-    <form action={action} className="space-y-4 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <form action={action} className="card space-y-4">
       <div>
         <label htmlFor="codigo_visita" className="block text-sm font-medium text-gray-700 mb-1">
           Código de Visita
@@ -37,8 +37,11 @@ export function EliminarVisitaForm() {
       <button
         type="submit"
         disabled={isPending}
-        className="w-full inline-flex items-center justify-center rounded-md bg-red-600 px-4 py-2
-                   text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+        className="w-full inline-flex items-center justify-center rounded-xl px-4 py-2.5
+                   text-sm font-semibold text-white shadow-md hover:shadow-lg
+                   hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50
+                   transition-all duration-200"
+        style={{ background: 'linear-gradient(90deg, #dc2626 0%, #f97316 100%)' }}
       >
         {isPending ? 'Eliminando...' : 'Eliminar Visita'}
       </button>

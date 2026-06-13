@@ -8,7 +8,7 @@ export function RegistrarVisitaForm() {
   const [state, action, isPending] = useActionState(registrarVisitaAction, null)
 
   return (
-    <form action={action} className="space-y-6 bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
+    <form action={action} className="card space-y-6">
 
       {/* Sección: Datos de la visita */}
       <fieldset className="space-y-4">

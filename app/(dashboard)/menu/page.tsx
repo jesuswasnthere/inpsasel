@@ -34,9 +34,10 @@ function MenuCard({ href, label }: { href: string; label: string }) {
   return (
     <Link
       href={href}
-      className="flex items-center justify-center rounded-xl border-2 border-brand-200 bg-white
-                 px-6 py-8 text-center text-base font-semibold text-brand-700
-                 hover:border-brand-500 hover:bg-brand-50 transition-colors shadow-sm"
+      className="flex items-center justify-center rounded-2xl bg-white/90 backdrop-blur-sm
+                 px-6 py-8 text-center text-base font-semibold text-blue-800
+                 shadow-md hover:shadow-lg hover:scale-[1.02]
+                 border border-blue-100 transition-all duration-200"
     >
       {label}
     </Link>

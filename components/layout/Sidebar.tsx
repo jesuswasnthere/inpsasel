@@ -26,11 +26,12 @@ export function Sidebar({ roleName }: SidebarProps) {
   ]
 
   return (
-    <aside className="w-60 shrink-0 bg-brand-900 text-white flex flex-col min-h-screen">
+    <aside className="w-60 shrink-0 flex flex-col min-h-screen shadow-xl"
+      style={{ background: 'linear-gradient(180deg, #1e3a8a 0%, #1e40af 60%, #1d4ed8 100%)' }}>
       {/* Logo */}
-      <div className="px-6 py-5 border-b border-brand-700">
-        <span className="text-lg font-bold tracking-wide">INPSASEL</span>
-        <p className="text-xs text-brand-300 mt-0.5 truncate">{roleName}</p>
+      <div className="px-6 py-5 border-b border-white/10">
+        <span className="text-lg font-bold tracking-widest text-white">INPSASEL</span>
+        <p className="text-xs text-blue-200 mt-0.5 truncate">{roleName}</p>
       </div>
 
       {/* Navegación */}
@@ -39,10 +40,10 @@ export function Sidebar({ roleName }: SidebarProps) {
           <Link
             key={href}
             href={href}
-            className={`flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors
+            className={`flex items-center px-3 py-2.5 rounded-lg text-sm font-medium transition-all
               ${pathname === href
-                ? 'bg-brand-700 text-white'
-                : 'text-brand-200 hover:bg-brand-800 hover:text-white'
+                ? 'bg-white/20 text-white shadow-sm'
+                : 'text-blue-200 hover:bg-white/10 hover:text-white'
               }`}
           >
             {label}
@@ -51,12 +52,12 @@ export function Sidebar({ roleName }: SidebarProps) {
       </nav>
 
       {/* Logout */}
-      <div className="px-3 py-4 border-t border-brand-700">
+      <div className="px-3 py-4 border-t border-white/10">
         <form action={logoutAction}>
           <button
             type="submit"
-            className="w-full text-left px-3 py-2 rounded-md text-sm text-brand-300
-                       hover:bg-brand-800 hover:text-white transition-colors"
+            className="w-full text-left px-3 py-2.5 rounded-lg text-sm text-blue-300
+                       hover:bg-white/10 hover:text-white transition-all"
           >
             Cerrar sesión
           </button>

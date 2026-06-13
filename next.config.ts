@@ -9,6 +9,11 @@ const nextConfig: NextConfig = {
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        // Logo INPSASEL alojado en Bing CDN
+        protocol: 'https',
+        hostname: 'tse3.mm.bing.net',
+      },
     ],
   },
 }
