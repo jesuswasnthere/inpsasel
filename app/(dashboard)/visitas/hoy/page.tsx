@@ -4,8 +4,6 @@ import type { Database } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Visitas del Día — INPSASEL' }
 
-type Visita = Database['public']['Tables']['visitas']['Row']
-
 export default async function VisitasDelDiaPage() {
   const supabase = await createClient()
   const hoy = new Date().toISOString().split('T')[0] // 'YYYY-MM-DD'
@@ -46,7 +44,7 @@ export default async function VisitasDelDiaPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {visitas?.map((v: Visita & { contactos?: { nombre_completo: string | null; nombre_entidad: string } | null }) => (
+              {visitas?.map((v) => (
                 <tr key={v.id_visita} className="hover:bg-gray-50">
                   <td className="px-4 py-3 font-mono text-xs">{v.codigo_visita}</td>
                   <td className="px-4 py-3">{v.hora}</td>

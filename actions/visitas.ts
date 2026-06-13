@@ -12,10 +12,7 @@ import {
 
 export type ActionState = { error: string } | { success: string } | null
 
-/**
- * Genera un código de visita único: VIS-YYYYMMDD-NNN
- * El contador reinicia cada día.
- */
+/** Genera un codigo unico: VIS-YYYYMMDD-NNN. El contador reinicia cada dia. */
 async function generarCodigoVisita(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
@@ -27,14 +24,10 @@ async function generarCodigoVisita(
     .eq('fecha', fecha)
 
   const numero = String((count ?? 0) + 1).padStart(3, '0')
-  const fechaStr = fecha.replace(/-/g, '') // YYYYMMDD
+  const fechaStr = fecha.replace(/-/g, '')
   return `VIS-${fechaStr}-${numero}`
 }
 
-/**
- * Registra una nueva visita.
- * Reemplaza la lógica de POST /register-visit del Express original.
- */
 export async function registrarVisitaAction(
   _prevState: ActionState,
   formData: FormData
@@ -43,12 +36,11 @@ export async function registrarVisitaAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Mapear FormData a objeto plano para Zod
   const raw = Object.fromEntries(formData.entries())
   const parsed = registrarVisitaSchema.safeParse(raw)
 
   if (!parsed.success) {
-    const firstError = parsed.error.errors[0]?.message ?? 'Datos inválidos'
+    const firstError = parsed.error.errors[0]?.message ?? 'Datos invalidos'
     return { error: firstError }
   }
 
@@ -74,10 +66,6 @@ export async function registrarVisitaAction(
   return { success: `Visita ${codigo_visita} registrada correctamente.` }
 }
 
-/**
- * Elimina una visita por código.
- * Reemplaza POST /delete-visit con requireVisitManagementPermission.
- */
 export async function eliminarVisitaAction(
   _prevState: ActionState,
   formData: FormData
@@ -86,7 +74,6 @@ export async function eliminarVisitaAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  // Verificar permisos (reemplaza requireVisitManagementPermission)
   const roleName = (user.user_metadata?.roleName as string) ?? ''
   if (!userCanManageVisits(roleName)) {
     return { error: 'No tiene permisos para eliminar visitas.' }
@@ -97,7 +84,7 @@ export async function eliminarVisitaAction(
   })
 
   if (!parsed.success) {
-    return { error: 'Código de visita inválido.' }
+    return { error: 'Codigo de visita invalido.' }
   }
 
   const { error } = await supabase
@@ -113,10 +100,6 @@ export async function eliminarVisitaAction(
   redirect('/menu')
 }
 
-/**
- * Modifica una visita existente por código.
- * Reemplaza la lógica de modificación del Express original.
- */
 export async function modificarVisitaAction(
   _prevState: ActionState,
   formData: FormData
@@ -134,7 +117,7 @@ export async function modificarVisitaAction(
   const parsed = modificarVisitaSchema.safeParse(raw)
 
   if (!parsed.success) {
-    const firstError = parsed.error.errors[0]?.message ?? 'Datos inválidos'
+    const firstError = parsed.error.errors[0]?.message ?? 'Datos invalidos'
     return { error: firstError }
   }
 

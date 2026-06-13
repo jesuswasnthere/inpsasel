@@ -32,7 +32,7 @@ export function Sidebar({ roleName }: SidebarProps) {
       className="w-64 shrink-0 flex flex-col min-h-screen"
       style={{ background: '#1a2744' }}
     >
-      {/* ── Logo + título ─────────────────────────────── */}
+      {/* Logo + título */}
       <div className="flex flex-col items-center px-6 pt-8 pb-6 border-b border-white/10">
         <Image
           src="https://tse3.mm.bing.net/th/id/OIP.EM3DltdiNLHzZh23cV-MYQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"
@@ -48,7 +48,7 @@ export function Sidebar({ roleName }: SidebarProps) {
         </p>
       </div>
 
-      {/* ── Navegación ────────────────────────────────── */}
+      {/* Navegación */}
       <nav className="flex-1 py-4">
         {/* Sección VISITA */}
         <div className="mb-2">
@@ -71,13 +71,12 @@ export function Sidebar({ roleName }: SidebarProps) {
         </div>
       </nav>
 
-      {/* ── Cerrar sesión ─────────────────────────────── */}
+      {/* Cerrar sesión */}
       <div className="px-4 pb-6 pt-2 border-t border-white/10">
         <form action={logoutAction}>
           <button
             type="submit"
-            className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white
-                       transition-all duration-200 hover:opacity-90"
+            className="w-full rounded-lg px-4 py-2.5 text-sm font-semibold text-white transition-all duration-200 hover:opacity-90"
             style={{ background: '#0f1c36' }}
           >
             Cerrar sesión
@@ -92,11 +91,11 @@ function NavLink({ href, label, active }: { href: string; label: string; active:
   return (
     <Link
       href={href}
-      className={`block w-full px-6 py-2.5 text-sm font-semibold text-center transition-all duration-150
-        ${active
+      className={`block w-full px-6 py-2.5 text-sm font-semibold text-center transition-all duration-150 ${
+        active
           ? 'bg-white/15 text-white'
           : 'text-white/80 hover:bg-white/10 hover:text-white'
-        }`}
+      }`}
     >
       {label}
     </Link>

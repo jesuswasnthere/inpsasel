@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: 'Inicio de sesión — INPSASEL' }
 export default function LoginPage() {
   return (
     <>
-      {/* Encabezado de marca — igual que el HTML original */}
+      {/* Encabezado de marca */}
       <div className="flex items-center gap-4 mb-5">
         <Image
           src="https://tse3.mm.bing.net/th/id/OIP.EM3DltdiNLHzZh23cV-MYQHaHa?rs=1&pid=ImgDetMain&o=7&rm=3"

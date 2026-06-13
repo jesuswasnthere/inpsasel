@@ -19,7 +19,6 @@ export default async function ModificarVisitaPage({ searchParams }: PageProps) {
 
   const { codigo } = await searchParams
 
-  // Si hay código en la URL, buscamos la visita
   let visita = null
   let fetchError: string | null = null
 
@@ -44,32 +43,27 @@ export default async function ModificarVisitaPage({ searchParams }: PageProps) {
         <p className="text-sm text-gray-500 mt-1">Busca por código de visita para editar sus datos.</p>
       </div>
 
-      {/* Formulario de búsqueda — simple GET que actualiza la URL */}
+      {/* Búsqueda por GET */}
       <form method="GET" className="flex gap-2">
         <input
           type="text"
           name="codigo"
           defaultValue={codigo ?? ''}
-          placeholder="Ej: VIS-2024-001"
+          placeholder="Ej: VIS-20240101-001"
           className="input-field flex-1"
           required
         />
-        <button
-          type="submit"
-          className="btn-primary px-6"
-        >
+        <button type="submit" className="btn-primary px-6">
           Buscar
         </button>
       </form>
 
-      {/* Error de búsqueda */}
       {fetchError && (
         <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
           {fetchError}
         </p>
       )}
 
-      {/* Formulario de edición — solo cuando hay visita */}
       {visita && <ModificarVisitaForm visita={visita} />}
     </div>
   )

@@ -10,8 +10,6 @@ export default async function DashboardLayout({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
-  // Doble verificación — el middleware ya protege, pero aquí obtenemos el user
-  // para pasarle los datos al Sidebar.
   if (!user) redirect('/login')
 
   const roleName = (user.user_metadata?.roleName as string) ?? ''

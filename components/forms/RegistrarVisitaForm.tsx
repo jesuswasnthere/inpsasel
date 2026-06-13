@@ -10,7 +10,6 @@ export function RegistrarVisitaForm() {
   return (
     <form action={action} className="card space-y-6">
 
-      {/* Sección: Datos de la visita */}
       <fieldset className="space-y-4">
         <legend className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
           Datos de la Visita
@@ -36,14 +35,13 @@ export function RegistrarVisitaForm() {
             </select>
           </div>
 
-          <Field label="Coordinación Referida" name="cordinacion_referida" placeholder="Opcional" />
+          <Field label="Coordinacion Referida" name="cordinacion_referida" placeholder="Opcional" />
         </div>
 
         <Field label="Motivo de Visita" name="motivo_visita" placeholder="Describe el motivo..." />
         <Field label="Observaciones" name="observaciones" placeholder="Observaciones adicionales..." />
       </fieldset>
 
-      {/* Sección: Datos del contacto/visitante */}
       <fieldset className="space-y-4">
         <legend className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
           Datos del Visitante
@@ -53,16 +51,15 @@ export function RegistrarVisitaForm() {
           <Field label="ID Contacto" name="id_contacto" type="number" required placeholder="ID en el sistema" />
           <Field label="Funcionario" name="funcionario" placeholder="Funcionario responsable" />
           <Field label="Sexo" name="sexo" placeholder="Masculino / Femenino" />
-          <Field label="Edad" name="edad" type="number" placeholder="Años" />
+          <Field label="Edad" name="edad" type="number" placeholder="Anos" />
           <Field label="Municipio" name="municipio" />
           <Field label="Sector" name="sector" />
           <Field label="Cargo" name="cargo" />
-          <Field label="Función" name="funcion" />
-          <Field label="Actividad Económica" name="actividad_economica" />
+          <Field label="Funcion" name="funcion" />
+          <Field label="Actividad Economica" name="actividad_economica" />
         </div>
       </fieldset>
 
-      {/* Mensajes de estado */}
       {state && 'error' in state && (
         <p role="alert" className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
           {state.error}
@@ -81,7 +78,6 @@ export function RegistrarVisitaForm() {
   )
 }
 
-// Componente auxiliar para evitar repetición
 function Field({
   label, name, type = 'text', required = false, placeholder = '',
 }: {

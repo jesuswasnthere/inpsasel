@@ -1,3 +1,11 @@
-// Tailwind v4: el tema se configura en globals.css via @theme.
-// Este archivo puede eliminarse — se mantiene vacío para compatibilidad.
-export default {}
+import type { Config } from 'tailwindcss'
+
+const config: Config = {
+  content: [
+    './pages/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+}
+
+export default config
