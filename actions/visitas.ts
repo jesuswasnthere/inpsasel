@@ -7,6 +7,7 @@ import { userCanManageVisits } from '@/lib/auth/permissions'
 import {
   registrarVisitaSchema,
   eliminarVisitaSchema,
+  modificarVisitaSchema,
 } from '@/lib/validations/visita.schema'
 
 export type ActionState = { error: string } | { success: string } | null
@@ -83,4 +84,45 @@ export async function eliminarVisitaAction(
 
   revalidatePath('/visitas/hoy')
   redirect('/menu')
+}
+
+/**
+ * Modifica una visita existente por código.
+ * Reemplaza la lógica de modificación del Express original.
+ */
+export async function modificarVisitaAction(
+  _prevState: ActionState,
+  formData: FormData
+): Promise<ActionState> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) redirect('/login')
+
+  const roleName = (user.user_metadata?.roleName as string) ?? ''
+  if (!userCanManageVisits(roleName)) {
+    return { error: 'No tiene permisos para modificar visitas.' }
+  }
+
+  const raw = Object.fromEntries(formData.entries())
+  const parsed = modificarVisitaSchema.safeParse(raw)
+
+  if (!parsed.success) {
+    const firstError = parsed.error.errors[0]?.message ?? 'Datos inválidos'
+    return { error: firstError }
+  }
+
+  const { codigo_visita, ...updateData } = parsed.data
+
+  const { error } = await supabase
+    .from('visitas')
+    .update(updateData)
+    .eq('codigo_visita', codigo_visita)
+
+  if (error) {
+    console.error('modificarVisita:', error.message)
+    return { error: 'No se pudo modificar la visita.' }
+  }
+
+  revalidatePath('/visitas/hoy')
+  return { success: `Visita ${codigo_visita} actualizada correctamente.` }
 }

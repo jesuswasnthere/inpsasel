@@ -35,3 +35,20 @@ export type RegistrarVisitaInput = z.infer<typeof registrarVisitaSchema>
 export const eliminarVisitaSchema = z.object({
   codigo_visita: z.string().min(1, 'El código de visita es requerido').trim(),
 })
+
+/**
+ * Schema de búsqueda: solo el código.
+ */
+export const buscarVisitaSchema = z.object({
+  codigo_visita: z.string().min(1, 'El código de visita es requerido').trim(),
+})
+
+/**
+ * Schema de modificación: todos los campos de registrar + el código como identificador.
+ * El código no se puede cambiar (es la PK de negocio).
+ */
+export const modificarVisitaSchema = registrarVisitaSchema.extend({
+  codigo_visita: z.string().min(1).trim(),
+})
+
+export type ModificarVisitaInput = z.infer<typeof modificarVisitaSchema>

@@ -7,8 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "types:db": "supabase gen types typescript --project-id xxvgbdoowdndpojmlfdc --schema public > types/database.ts",
-    "types:db:local": "supabase gen types typescript --local --schema public > types/database.ts"
+    "types:db": "npx supabase gen types typescript --project-id xxvgbdoowdndpojmlfdc --schema public > types/database.ts",
+    "types:db:local": "npx supabase gen types typescript --local --schema public > types/database.ts",
+    "migrate:users": "tsx scripts/migrate-users.ts"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
@@ -35,6 +36,7 @@
     "eslint-config-next": "15.3.3",
     "postcss": "^8",
     "tailwindcss": "^4.1.8",
+    "tsx": "^4.19.2",
     "typescript": "^5"
   }
 }
