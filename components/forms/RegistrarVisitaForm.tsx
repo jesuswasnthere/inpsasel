@@ -17,7 +17,6 @@ export function RegistrarVisitaForm() {
         </legend>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <Field label="Código de Visita" name="codigo_visita" required placeholder="VIS-2024-001" />
           <Field label="Fecha" name="fecha" type="date" required />
           <Field label="Hora" name="hora" type="time" required />
 

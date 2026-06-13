@@ -13,6 +13,25 @@ import {
 export type ActionState = { error: string } | { success: string } | null
 
 /**
+ * Genera un código de visita único: VIS-YYYYMMDD-NNN
+ * El contador reinicia cada día.
+ */
+async function generarCodigoVisita(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  supabase: any,
+  fecha: string
+): Promise<string> {
+  const { count } = await supabase
+    .from('visitas')
+    .select('*', { count: 'exact', head: true })
+    .eq('fecha', fecha)
+
+  const numero = String((count ?? 0) + 1).padStart(3, '0')
+  const fechaStr = fecha.replace(/-/g, '') // YYYYMMDD
+  return `VIS-${fechaStr}-${numero}`
+}
+
+/**
  * Registra una nueva visita.
  * Reemplaza la lógica de POST /register-visit del Express original.
  */
@@ -37,8 +56,11 @@ export async function registrarVisitaAction(
     ? Number(user.user_metadata.id_usuario)
     : null
 
+  const codigo_visita = await generarCodigoVisita(supabase, parsed.data.fecha)
+
   const { error } = await supabase.from('visitas').insert({
     ...parsed.data,
+    codigo_visita,
     id_usuario: idUsuario,
   })
 
@@ -48,7 +70,8 @@ export async function registrarVisitaAction(
   }
 
   revalidatePath('/visitas/hoy')
-  return { success: 'Visita registrada correctamente.' }
+  revalidatePath('/visitas/calendario')
+  return { success: `Visita ${codigo_visita} registrada correctamente.` }
 }
 
 /**

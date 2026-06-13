@@ -11,7 +11,7 @@ export const ESTATUS_VISITA = [
 ] as const
 
 export const registrarVisitaSchema = z.object({
-  codigo_visita: z.string().min(1).trim(),
+  // codigo_visita se genera automáticamente en el servidor
   fecha: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato: YYYY-MM-DD'),
   hora: z.string().regex(/^\d{2}:\d{2}$/, 'Formato: HH:MM'),
   tipo_visita: z.enum(TIPOS_VISITA),
