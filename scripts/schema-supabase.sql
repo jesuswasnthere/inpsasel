@@ -153,8 +153,6 @@ CREATE TABLE VISITAS (
 
   CONSTRAINT fk_visita_contacto
     FOREIGN KEY (id_contacto) REFERENCES CONTACTOS(id_contacto) ON DELETE RESTRICT,
-  CONSTRAINT fk_visita_usuario
-    FOREIGN KEY (id_usuario)  REFERENCES USUARIOS(id_usuario)   ON DELETE RESTRICT,
   CONSTRAINT fk_visita_orden
     FOREIGN KEY (id_orden)    REFERENCES ORDENES_TRABAJO(id_orden) ON DELETE SET NULL
 );
