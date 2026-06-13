@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "types:db": "npx supabase gen types typescript --project-id xxvgbdoowdndpojmlfdc --schema public > types/database.ts",
+    "types:db": "npx supabase gen types typescript --project-id xxvgbdoowdndpojmlfdc --schema public --lang typescript | node -e \"process.stdin.resume();let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>require('fs').writeFileSync('types/database.ts',d,'utf8'))\"",
     "types:db:local": "npx supabase gen types typescript --local --schema public > types/database.ts",
     "migrate:users": "tsx scripts/migrate-users.ts"
   },

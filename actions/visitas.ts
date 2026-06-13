@@ -33,9 +33,13 @@ export async function registrarVisitaAction(
     return { error: firstError }
   }
 
+  const idUsuario = user.user_metadata?.id_usuario
+    ? Number(user.user_metadata.id_usuario)
+    : null
+
   const { error } = await supabase.from('visitas').insert({
     ...parsed.data,
-    id_usuario: Number(user.user_metadata?.id_usuario ?? 0),
+    id_usuario: idUsuario,
   })
 
   if (error) {
