@@ -1,6 +1,23 @@
-.env
+# Dependencias
 node_modules/
-npm-debug.log
-.DS_Store
+
+# Next.js
+.next/
+out/
+
+# Variables de entorno — NUNCA commitear
 .env
 .env.local
+.env.*.local
+
+# Logs
+npm-debug.log*
+*.log
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/settings.json
+.idea/
