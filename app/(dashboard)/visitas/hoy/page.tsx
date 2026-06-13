@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { createClient } from '@/lib/supabase/server'
-import type { Database } from '@/types/database'
 
 export const metadata: Metadata = { title: 'Visitas del Día — INPSASEL' }
 
